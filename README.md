@@ -4,6 +4,8 @@
 
 작성 시작: 2026-05-15
 도구: Obsidian (wikilink 자동 처리) + git
+원격: github.com/baedonggeun/my-dev-notes (private)
+첫 도출 프로젝트: [CasualStrategy](https://github.com/baedonggeun/CasualStrategy) — `docs/decisions/harness/cross-repo-knowledge.md` ADR
 
 ---
 
@@ -83,6 +85,11 @@ csharp-syntax-notes는 예외 — 함정 있는 항목만 풀노트.
 ---
 
 ## 워크플로우
+
+### 하네스 통합 (CasualStrategy 기준)
+- `/check-done` T2 메뉴 `[7]` / T3 `[11]` / T4 `[8]`에 **my-dev-notes 갱신 점검** 항목 통합
+- 하네스 docs 갱신 시점에 portable 패턴이 노트로 자연 흐름
+- 다른 프로젝트로 카피 시: 본 repo 경로(`d:\git_repository\my-dev-notes\`)가 하드코딩되어 있으므로 `/check-done` 스킬 수정 필요
 
 ### 새 프로젝트 시작 시
 1. 새 프로젝트 폴더 생성
