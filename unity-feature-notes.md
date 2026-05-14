@@ -40,6 +40,7 @@
 | 6 | `FindObjectsByType` / `GetComponent` / `Instantiate` / `Destroy` | 런타임 객체 조회/생성/소멸 기본 API | `#Unity전용` `#필수` |
 | 31 | `[RequireComponent(typeof(T))]` | 동일 GameObject에 의존 컴포넌트 자동 추가 + Awake에서 GetComponent 보장 | `#Unity전용` |
 | 34 | `OnValidate` | Inspector에서 SerializeField 값 변경 시 호출되는 에디터 콜백 — 배열 정규화, 값 검증, 의존 자산 동기화 | `#Unity전용` `#에디터` |
+| 36 | `[DefaultExecutionOrder(N)]` | 컴포넌트 Awake/Update 등의 실행 순서를 정수값으로 강제 — 매니저 초기화 순서 의존 시 사용 | `#Unity전용` |
 
 ### UI (uGUI)
 | # | 기능 | 한 줄 요약 | 종속성 |
@@ -71,6 +72,18 @@
 |---|------|----------|--------|
 | 19 | `Physics2D.OverlapPoint` | 점 좌표가 어느 2D 콜라이더와 겹치는지 판정 | `#Unity전용` `#Physics2D` |
 | 20 | com.unity.feature.2d 모듈 | 2D 전용 패키지 번들 (Sprite/Tilemap/Physics2D) | `#Unity전용` `#2DFeature` |
+| 37 | Physics2D Layer Collision Matrix | Project Settings → Physics 2D에서 레이어 쌍별 충돌 활성/비활성 매트릭스 — 스크립트 if 분기 제거 | `#Unity전용` `#Physics2D` |
+| 38 | `Physics2D.RaycastNonAlloc` / `OverlapXxxNonAlloc` | 사전 할당 버퍼를 재사용해 결과 수신 — heap alloc 0 (센서/감지 hot path) | `#Unity전용` `#Physics2D` |
+
+### 입력
+| # | 기능 | 한 줄 요약 | 종속성 |
+|---|------|----------|--------|
+| 39 | Input System (New) + InputAction | `.inputactions` 에셋에 키 바인딩 정의 → 콜백/PlayerInput으로 입력 수신. Command 패턴과 결합해 입력→액션 매핑 분리 | `#Unity전용` |
+
+### 애니메이션
+| # | 기능 | 한 줄 요약 | 종속성 |
+|---|------|----------|--------|
+| 40 | Animator Layer + Avatar Mask | Layer를 인덱스 별로 쌓고 Avatar Mask로 본 영역(상체/하체) 제한 — "이동 중 공격" 같은 합성 동작. 인덱스 ↑가 우선, Override/Additive 블렌딩 | `#Unity전용` |
 
 ### 데이터 / 영속화 / 콘텐츠 파이프라인
 
@@ -106,15 +119,14 @@
 
 ## 사용 안 한 Unity 기능 (참고)
 
-- **Animator / Animation Clip** — 트윈 유틸로 대체
+- **Animation Clip / Animator (CasualStrategy 범위)** — 트윈 유틸로 대체. Animator Layer + Avatar Mask 자체는 #40으로 등재 (복수 프로젝트)
 - **Cinemachine** — 카메라 단순
 - **Physics 3D** — 2D 전용
-- **Addressables** — Resources.Load만 사용
+- **Addressables (CasualStrategy 범위)** — Resources.Load만 사용. Addressables + Pool 조합은 design-pattern #22 Streaming Pattern으로 등재 (복수 프로젝트)
 - **DOTS / ECS** — N/A
 - **UI Toolkit (VisualElement)** — uGUI 전용
 - **Networking** — 싱글플레이어
 - **Unity Localization Package** — 자체 JSON 시스템 사용
-- **Input System (New)** — Old Input + EventSystem
 
 ---
 

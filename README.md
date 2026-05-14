@@ -128,3 +128,4 @@ csharp-syntax-notes는 예외 — 함정 있는 항목만 풀노트.
 ## 첫 도출 기록
 
 - **CasualStrategy** (2026-05-15) — Unity 6 캐주얼 전략 게임. 7개 노트 최초 정립. 약 100+ 인덱스 항목, 풀노트 3개(Lerp / Asymmetric Jump / Coyote Time / Hold-to-Repeat)
+- **복수 프로젝트** (구일자 미상, 2026-05-15에 회상 등재) — 액션 2D 추정. 본 노트 누락 항목 9개 등재: DefaultExecutionOrder, Physics2D Layer Matrix, Physics2D NonAlloc, Input System (New), Parallax Scrolling, DI 패턴, Domain-Scoped Injection Interface, Streaming Pattern, Animator Layer + Avatar Mask. Rewind 1건은 구현 함정(Animator/물리/AI 상태 동기화 어려움)으로 미등재 — 실제 채택 시점에 등재
