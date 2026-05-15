@@ -41,6 +41,7 @@
 | 31 | `[RequireComponent(typeof(T))]` | 동일 GameObject에 의존 컴포넌트 자동 추가 + Awake에서 GetComponent 보장 | `#Unity전용` |
 | 34 | `OnValidate` | Inspector에서 SerializeField 값 변경 시 호출되는 에디터 콜백 — 배열 정규화, 값 검증, 의존 자산 동기화 | `#Unity전용` `#에디터` |
 | 36 | `[DefaultExecutionOrder(N)]` | 컴포넌트 Awake/Update 등의 실행 순서를 정수값으로 강제 — 매니저 초기화 순서 의존 시 사용 | `#Unity전용` |
+| 41 | GameObject 비활성화 시 코루틴 silent 정지 함정 | `SetActive(false)` 시 Unity가 자식 코루틴을 예외 없이 정지 → `isRunning`/`isPlaying` 같은 진행 플래그가 reset 안 되어 다음 활성화 시 dead-lock. 대응: `OnDisable`에서 큐/플래그 cleanup, 또는 `Cancel{Op}()` 래핑 메서드로 강제 종료 경로를 정상 코루틴 흐름과 분리 | `#Unity전용` `#코루틴` |
 
 ### UI (uGUI)
 | # | 기능 | 한 줄 요약 | 종속성 |
