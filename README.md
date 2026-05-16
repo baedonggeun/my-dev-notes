@@ -9,8 +9,9 @@
 
 ---
 
-## 노트 구조 (7개)
+## 노트 구조 (8개)
 
+### 검증된 패턴 (7개)
 | 노트 | 다루는 축 | 적용 범위 |
 |------|----------|----------|
 | [design-pattern-notes](design-pattern-notes.md) | 코드 구조 패턴 (GoF + 아키텍처). 재사용 가능한 *관계*의 추상화 | OOP/FP 언어 독립 |
@@ -20,6 +21,11 @@
 | [game-misc-notes](game-misc-notes.md) | 단편 트릭/가드/캐시 — 패턴이라기엔 작고 API라기엔 응용된 단편 | 다수 게임엔진/Unity 종속 |
 | [unity-feature-notes](unity-feature-notes.md) | Unity 빌트인 API / 패키지 / 에디터 기능 카탈로그 | Unity 전용 (의도적) |
 | [csharp-syntax-notes](csharp-syntax-notes.md) | C# 키워드/연산자/문법 cheatsheet | C# 전 버전 |
+
+### 인박스 (1개)
+| 노트 | 다루는 축 | 적용 범위 |
+|------|----------|----------|
+| [idea-notes](idea-notes.md) | 미구현 아이디어 / 관찰한 기법 / 학습한 개념 — *검증 전* | 전 영역, 승격 시 위 7개 중 하나로 이주 |
 
 각 노트 상단 메타 헤더에 다루는 축 / 다루지 않는 축 / 관련 노트 / 평생 노트 정책이 명시되어 있다.
 
@@ -31,6 +37,7 @@
 - **두 번째 만남** — 같은 패턴을 두 번 마주치면 인덱스 한 줄 추가. 한 번에 풀노트 작성하지 않음
 - **두 번째 회상 실패** — 작성한 인덱스를 다시 봐도 "왜 그랬지?"가 떠오르지 않으면 풀노트로 승격
 - **프로젝트 종료 시** — lessons learned 일괄 통합
+- **idea-notes 예외** — 인박스이므로 한 번 만남도 등재 OK. 단, 7개 본 노트로 승격하려면 2개 이상 프로젝트 검증 필요
 
 ### 인덱스 표 = SOT
 모든 노트의 인덱스 표가 단일 진실의 원천. 풀노트는 항목 일부만 작성.
@@ -129,3 +136,4 @@ csharp-syntax-notes는 예외 — 함정 있는 항목만 풀노트.
 
 - **CasualStrategy** (2026-05-15) — Unity 6 캐주얼 전략 게임. 7개 노트 최초 정립. 약 100+ 인덱스 항목, 풀노트 3개(Lerp / Asymmetric Jump / Coyote Time / Hold-to-Repeat)
 - **복수 프로젝트** (구일자 미상, 2026-05-15에 회상 등재) — 액션 2D 추정. 본 노트 누락 항목 9개 등재: DefaultExecutionOrder, Physics2D Layer Matrix, Physics2D NonAlloc, Input System (New), Parallax Scrolling, DI 패턴, Domain-Scoped Injection Interface, Streaming Pattern, Animator Layer + Avatar Mask. Rewind 1건은 구현 함정(Animator/물리/AI 상태 동기화 어려움)으로 미등재 — 실제 채택 시점에 등재
+- **idea-notes 신설** (2026-05-16) — 미구현 아이디어/관찰 기법 인박스. 3건 등재: ① 결정론적 시간축 양자 예측(달력 SOT 시뮬레이션, CasualStrategy 도출), ② Rewind 시스템(복수 프로젝트에서 보류, `#미구현`), ③ Sequence ↔ Data 흐름 분리(CasualStrategy G-030 기반, `#1회검증`)
