@@ -95,6 +95,7 @@
 | 21 | PlayerPrefs | 키-값 영속 저장 (int/float/string 한정, 플랫폼별 저장 위치 자동) | `#Unity전용` |
 | 22 | `Resources.Load<T>` (TextAsset / SO / AudioMixer) | Resources 폴더 자산을 런타임 경로 기반 로드 | `#Unity전용` |
 | 23 | TextAsset + 커스텀 JSON Regex 파싱 | 텍스트 파일을 임포트 + 정규식 파싱 (JsonUtility 한계 회피) | `#Unity전용` |
+| 42 | `[SerializeReference]` + 커스텀 `SubclassSelector` PropertyDrawer | abstract/interface 필드를 SO 인라인으로 직렬화 + 인스펙터 드롭다운으로 자식 타입 선택. `[Serializable]` 부모 + 자식 N종, `[SerializeReference, SubclassSelector] public TParent field;`로 선언. struct→reference 마이그레이션은 `FormerlySerializedAs` 미지원 → 1회 마이그레이션 메뉴 필수(legacy 필드 임시 보존하는 2단계 묶음 + 검증 후 삭제). 폴리모피즘 인스턴스 1개로 데이터+동작 응집 (Strategy 패턴의 SO 친화 단순화). 자식이 시너지 enum 등 외부 도메인을 모르고 의존 필드명만 알게 해 결합점 좁힘 | `#Unity전용` `#데이터` `#직렬화` |
 
 ### 에디터
 
