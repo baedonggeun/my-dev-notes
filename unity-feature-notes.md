@@ -137,3 +137,192 @@
 *풀 4블록 노트는 요청 시 작성. 위 인덱스 표가 SOT.*
 
 ---
+
+## 18. Camera + RenderTexture (월드 카메라를 UI에 투영)
+
+**한 줄 요약**
+보조 카메라가 `RenderTexture` 에셋에 렌더하고, UI의 `RawImage.texture`로 그 RT를 출력해 월드 공간을 UI 영역에 임베드하는 패턴. 미니맵/포털/캐릭터 프리뷰/장면 내 화면 등에 사용.
+
+**설명**
+메인 카메라와 별도로 동작하는 카메라를 만들고, 그 카메라의 `targetTexture`에 `RenderTexture` 에셋을 할당하면 화면 대신 RT에 렌더된다. UI 쪽에서는 `RawImage`(또는 `Image` + RenderTexture 호환 머티리얼)가 그 RT를 텍스처로 표시한다.
+
+이 패턴의 핵심 가치는 두 가지:
+- **레이아웃 분리** — 월드 카메라는 정확한 월드 좌표를 보고, UI는 자유롭게 RectTransform/Canvas 시스템에 배치. 카메라 줌/팬을 UI 변환에 끼지 않고 별도 처리 가능
+- **입력 좌표 변환의 명확화** — RawImage 영역 내 마우스 좌표 → UV → 보조 카메라 viewport → 월드 좌표 → 2D Physics 라는 체인이 정형화됨
+
+대표 응용:
+- 맵/미니맵 (CasualStrategy의 MapManager + MapNodeHoverDetector)
+- 캐릭터 프리뷰 (장비 변경 UI에서 회전하는 모델)
+- 포털/CCTV (게임 안의 다른 장소 실시간 표시)
+- 다중 분할 화면 (협동 게임의 player 1/2 viewport)
+
+**구현 — 셋업 (Inspector)**
+1. `Assets/Art/RenderTextures/MapRenderTexture.renderTexture` 생성 — Size는 UI 표시 영역과 동일/배수, Format은 보통 `Default (Auto-HDR off)`
+2. 보조 카메라 GameObject 추가 — `Camera.targetTexture`에 위 RT 할당, `Culling Mask`를 표시 대상 레이어만 (Default 제외하면 메인 씬과 격리)
+3. UI Canvas 안에 `RawImage` 추가 — `texture` 필드에 같은 RT 할당
+4. 보조 카메라 GameObject layer를 표시 대상 노드들과 동일하게 (CasualStrategy: `mapLayer`)
+
+**구현 — 마우스 입력 → 월드 좌표 (CasualStrategy MapNodeHoverDetector)**
+```csharp
+// 1) 스크린 → RawImage 로컬
+RectTransformUtility.ScreenPointToLocalPointInRectangle(
+    rectTransform, eventData.position, eventData.pressEventCamera, out var localPoint);
+
+// 2) 로컬 → UV (0~1)
+Rect rect = rectTransform.rect;
+float u = (localPoint.x - rect.x) / rect.width;
+float v = (localPoint.y - rect.y) / rect.height;
+if (u < 0f || u > 1f || v < 0f || v > 1f) return;  // 영역 밖
+
+// 3) UV → 보조 카메라 월드 좌표
+Vector3 worldPoint = mapCamera.ViewportToWorldPoint(new Vector3(u, v, 0f));
+
+// 4) 월드 좌표 → 2D Physics 판정
+var hit = Physics2D.OverlapPoint(worldPoint);
+if (hit != null) { /* hit.GetComponent<MapNodeIdentifier>() ... */ }
+```
+
+**구현 — 월드 좌표 → RawImage 내 스크린 좌표 (툴팁 anchor)**
+```csharp
+// 노드의 월드 좌표 → 카메라 viewport (0~1)
+Vector3 viewport = mapCamera.WorldToViewportPoint(node.position);
+
+// viewport → RawImage 로컬 좌표
+float localX = rect.x + viewport.x * rect.width;
+float localY = rect.y + viewport.y * rect.height;
+
+// 로컬 → 스크린
+Vector2 screenPos = rectTransform.TransformPoint(new Vector2(localX, localY));
+```
+
+**구현 — UV 델타로 카메라 팬 (드래그 이동)**
+```csharp
+// 드래그 시작 UV 저장 → 매 OnDrag에서 새 UV와 델타 계산
+Vector2 deltaUv = currentUv - lastUv;
+
+// 카메라 orthographic 크기로 월드 델타 환산
+float worldHeight = mapCamera.orthographicSize * 2f;
+float worldWidth = worldHeight * mapCamera.aspect;
+Vector3 worldDelta = new Vector3(deltaUv.x * worldWidth, deltaUv.y * worldHeight, 0f);
+
+mapCamera.transform.position -= worldDelta;  // 드래그 방향과 반대로 카메라 이동
+```
+
+**주의점**
+- **RT 해상도와 UI aspect 일치 필수** — RT 크기와 RawImage 표시 영역의 가로:세로 비가 다르면 늘어남/잘림 발생. 표시 영역이 가변이면 RT를 `dynamicResolution` 또는 코드로 `width/height` 재할당. 단, RT 재할당은 GPU 메모리 재바인딩이라 매 프레임 금지
+- **카메라 Culling Mask 격리** — 메인 카메라와 보조 카메라가 같은 레이어를 그리면 메인에도 노드가 표시됨. 보조 카메라가 그릴 GameObject는 전용 layer로 분리 (CasualStrategy: 노드들을 `mapLayer`에 두고 보조 카메라 mask를 `mapLayer`만)
+- **입력은 RawImage가 받지 보조 카메라가 받지 않음** — 보조 카메라의 `Camera.eventMask`나 PhysicsRaycaster는 발화 안 됨 (UI canvas가 입력을 가로챔). 따라서 hover/click 감지는 RawImage 위에 `IPointerHandler` 컴포넌트를 두고 위 4단계 변환 체인을 직접 구현
+- **eventData.pressEventCamera = null 함정** — Canvas RenderMode가 ScreenSpaceOverlay면 `pressEventCamera`가 null. `ScreenPointToLocalPointInRectangle`은 null을 허용하지만, ScreenSpaceCamera/WorldSpace이면 반드시 Canvas의 `worldCamera` 전달
+- **UV 경계 검사 빠뜨림** — `localPoint`가 rect 밖이어도 변환은 동작하므로 `0 <= u,v <= 1` 명시 검사 필요. 안 그러면 RawImage 밖 마우스도 hover로 인식
+- **2D 카메라는 orthographic** — `ViewportToWorldPoint`에 z 인자가 들어가지만 orthographic이면 사실상 무시. perspective 카메라면 z(near plane으로부터의 거리)가 결과에 큰 영향
+- **RT 메모리 비용** — `1024×1024 ARGB32 = 4MB`. 모바일에서 다중 RT 사용 시 누적 메모리 + 매 프레임 추가 draw call(보조 카메라 1대당 1패스) 고려
+- **드래그 좌표 누적 함정** — `delta` 기반으로 카메라를 이동시키면 매 프레임 작은 부동소수점 오차 누적. 드래그 시작 시점의 카메라 위치와 UV를 저장해두고 매 프레임 absolute로 재계산하는 방식이 정확하지만, CasualStrategy 케이스처럼 짧은 드래그면 delta 방식도 실용 충분
+- **OnPointerExit가 안 오는 경우** — 드래그 중에는 PointerExit이 발화 안 함 → hover 상태가 stuck. 드래그 시작 시 명시적으로 `ClearHover()` 호출 (CasualStrategy 패턴)
+
+**메타**
+- 종속성: `#Unity전용` `#렌더링` (uGUI 또는 UI Toolkit, 2D/3D 모두 적용 가능)
+- 관련 노트: [[unity-feature-notes]] #12 Canvas RenderMode, #13 RectTransformUtility, #19 Physics2D.OverlapPoint
+- 첫 도출: CasualStrategy (2026-05-18) — MapManager + MapNodeHoverDetector
+- 적용 사례:
+  - CasualStrategy: 맵 화면 (`MapRenderTexture` + 보조 `mapCamera` + `RawImage` + `MapNodeHoverDetector`)
+- 태그: `#렌더링` `#UI` `#카메라` `#좌표변환`
+
+---
+
+## 36. CanvasGroup 기반 UI Hide / Pool
+
+**한 줄 요약**
+`SetActive(false)` 대신 `CanvasGroup.alpha=0 + blocksRaycasts=false + interactable=false` 조합으로 UI를 hidden 처리. OnEnable/OnDisable 발화 없이 렌더링/입력만 차단해 코루틴·이벤트 구독·풀 인스턴스 상태를 보존.
+
+**설명**
+Unity의 `SetActive(false)`는 강력하지만 부작용이 크다:
+- **OnDisable 발화** → 자식 코루틴 silent 정지, 이벤트 구독 해제, 캐시 무효화 등 라이프사이클 처리 트리거
+- **OnEnable 재발화** → 다시 켜면 초기화 비용 반복
+- **Hierarchy 재활성화 비용** → 자식 컴포넌트들의 OnEnable 연쇄
+
+UI는 보통 "보였다 안 보였다"가 자주 발생하는데(탭 전환, 모달 토글, 풀 hidden 등) `SetActive` 토글로 처리하면 매번 라이프사이클이 돈다.
+
+`CanvasGroup` 3종 세트가 대안:
+- `alpha = 0` — 렌더링 차단 (자식 모두 투명)
+- `blocksRaycasts = false` — 마우스/터치 입력 통과 (아래 UI가 받음)
+- `interactable = false` — 자식 Selectable(Button 등) 비활성화 (Selectable.IsInteractable 체크 시점에 차단)
+
+GameObject는 활성 상태를 유지하므로 OnEnable/OnDisable 발화 없음 → 라이프사이클 부작용 0.
+
+대표 응용 패턴 2가지:
+
+**(A) 탭/패널 전환 — 단순 hide**
+같은 부모 아래 N개 패널이 alternating으로 보임/안 보임. SetActive 토글하면 매 전환마다 panel 내부 컴포넌트 OnEnable 발화 → 무거움. CanvasGroup 토글이 표준.
+
+**(B) UI Pool — 풀 인스턴스 hidden 유지**
+GameObject pool에서 사용 중이 아닌 인스턴스를 어딘가에 "숨겨" 보관. SetActive(false)로 숨기면 풀에서 꺼낼 때 OnEnable이 발화 → 매번 초기화 비용. CanvasGroup으로 숨기면 alpha만 토글 → 거의 0 비용 재사용.
+
+**구현 — (A) TabController (CasualStrategy)**
+```csharp
+public class TabController : MonoBehaviour
+{
+    [SerializeField] private Button[] tabs;
+    [SerializeField] private CanvasGroup[] panels;
+
+    public void SelectTab(int index)
+    {
+        for (int i = 0; i < panels.Length; i++)
+        {
+            bool selected = i == index;
+            panels[i].alpha = selected ? 1f : 0f;
+            panels[i].blocksRaycasts = selected;
+            panels[i].interactable = selected;
+        }
+    }
+}
+```
+
+**구현 — (B) Popup Pool (CasualStrategy 변형)**
+```csharp
+// 풀 인스턴스 생성 시: alpha=0 + SetActive(false) 동시 적용
+private GameObject CreatePooledInstance(GameObject prefab)
+{
+    var go = Instantiate(prefab, poolRoot);
+    var cg = EnsureCanvasGroup(go);
+    cg.alpha = 0f;
+    cg.blocksRaycasts = false;
+    // Why: prewarm 인스턴스가 active로 남아 prefab 기본 텍스트가 spawnAnchor 위치에 잔존
+    //      (alpha=0이어도 TMP material 조합에 따라 흐릿하게 보임)
+    go.SetActive(false);
+    return go;
+}
+
+// 사용 시 (Get): SetActive(true) + alpha=1
+go.SetActive(true);
+cg.alpha = 1f; cg.blocksRaycasts = false;  // raycast는 hit 불필요한 popup
+
+// 반환 시 (Release): alpha=0 + SetActive(false)
+cg.alpha = 0f; cg.blocksRaycasts = false;
+go.transform.SetParent(poolRoot, false);
+go.SetActive(false);
+pool.Enqueue(go);
+```
+
+CasualStrategy의 PopupSpawner는 "순수 CanvasGroup-only"가 아니라 **하이브리드**다. alpha=0만으로는 TMP_Text의 SDF material 조합에 따라 흐릿하게 잔존하는 케이스가 있어 풀 인스턴스에는 SetActive(false)도 함께 적용. 이는 노트 #36의 순수 패턴에서 한 단계 진화한 형태.
+
+**주의점**
+- **`alpha=0`만으로 입력은 차단되지 않음** — 알파 0이어도 Image의 Raycast Target이 켜져있으면 마우스를 흡수한다. `blocksRaycasts=false`를 반드시 함께. 이거 빠뜨려서 "안 보이는데 클릭이 안 되는 다른 UI" 버그 자주 발생
+- **`interactable=false`는 시각 효과 동반** — Selectable(Button)의 disabled color가 적용되어 회색 처리됨. 단순 입력 차단만 원하면 `blocksRaycasts=false`만으로 충분 (Button 내부 hover/press 검사는 raycast가 막히면 자동 차단)
+- **TMP material 조합 함정** — alpha=0이어도 일부 TMP material(특히 outline/glow 설정)에서 흐릿하게 잔존. prewarm/풀 인스턴스는 `SetActive(false)` 병행 권장 (CasualStrategy 사례)
+- **부모 CanvasGroup 곱셈** — 자식 CanvasGroup의 alpha는 부모 CanvasGroup의 alpha와 곱해진다. 자식만 alpha=1이어도 부모가 0.5면 최종 0.5. 의도 외 동작 주의
+- **`ignoreParentGroups`** — 위 곱셈을 무시하고 싶으면 자식 CanvasGroup의 `ignoreParentGroups=true` (드물게 사용. 모달 dialog가 어두워진 부모 위에 또렷이 떠야 할 때)
+- **layout 비용은 안 줄어듦** — alpha=0이어도 LayoutGroup은 여전히 자식 크기를 계산해 배치한다. 보이지 않아도 레이아웃 계산 비용 발생. 진짜 숨기고 layout에서도 제외하려면 SetActive(false) 또는 `LayoutElement.ignoreLayout=true`
+- **draw call은 줄어듦** — alpha=0인 Image/Text는 Unity가 자동으로 batch에서 제외 (Canvas dirty 검사 후). 따라서 GPU 비용은 안 듦. CPU layout 비용만 남음
+- **풀 인스턴스의 부모 변경** — pool에 반환할 때 `SetParent(poolRoot)` 호출하면 LayoutGroup이 다시 dirty되어 레이아웃 재계산. 자주 발생하면 `poolRoot`를 LayoutGroup이 없는 빈 RectTransform으로 두기
+- **CanvasGroup 컴포넌트 자체의 비용** — 매 frame Canvas dirty 검사에 포함됨. 패널마다 하나씩 다는 정도는 무시 가능하지만, 수백 개 풀 인스턴스 각각에 다는 건 측정 후 결정
+- **이벤트 구독은 그대로 살아있음** — GameObject active이므로 OnEnable에서 구독한 이벤트, 코루틴, Update는 모두 동작 중. hidden 상태에서 동작이 의도와 다르면 명시적으로 `enabled = false` 또는 내부 플래그로 게이팅
+
+**메타**
+- 종속성: `#Unity전용` `#uGUI` (CanvasGroup은 uGUI 전용. UI Toolkit은 다른 메커니즘)
+- 관련 노트: [[unity-feature-notes]] #7 Canvas/CanvasGroup/RectTransform, #41 GameObject 비활성화 silent 코루틴 정지 함정 (대응책 중 하나)
+- 첫 도출: CasualStrategy (2026-05-15) — 다수 UI controller/binder
+- 적용 사례:
+  - CasualStrategy: TabController (탭 전환), PopupSpawner (popup pool, 하이브리드), BattleLogBinder, TooltipManager, RewardPopupController, GachaController 등
+- 태그: `#UI` `#uGUI` `#Pool` `#성능` `#라이프사이클`
+
+---
