@@ -42,6 +42,10 @@
 | 4 | 동시 이벤트 발행이 UI 단계 표시 회귀 | `#아키텍처` `#디자인원리` `#패턴` | N개 슬롯/엔티티가 동시 코루틴으로 OnEvent N번 즉시 발행 → UI가 단계 1→2→3 보여줄 frame 없이 즉시 점프. 슬롯 순차 진행이 UX 우위 | `#1회검증` |
 | 5 | 동일 카테고리 효과의 시점·대상·경로 일관성 | `#디자인원리` `#패턴` | 동일 카테고리(강화 시너지) 효과가 자기/적, 즉시/지연, 단일/이중 경로로 비대칭이면 사용자 인지 혼란. 통합 SOT + 시점·대상 통일 | `#1회검증` |
 | 6 | 결과 객체에 재계산 가능 필드 추가 | `#패턴` `#아키텍처` | 이미 생성된 결과 객체(dice roll)에 reinforced/final* 필드 추가 → 원본 입력(rollValue) 유지하며 보정 델타만 더해 type 재판정. 호출 위치 변경 없이 재계산 | `#1회검증` |
+| 7 | 외부 대기 카운터의 모든 발행 경로 노출 | `#아키텍처` `#패턴` `#디자인원리` | 비동기 작업이 큐/즉시/지연 등 다중 발행 경로를 가질 때, 외부 대기가 추적하는 카운터·플래그가 *모든* 경로를 노출하지 않으면 누락 경로 활성 중에도 대기가 race로 풀린다. 신규 경로 도입 시 추적 메커니즘 확장이 강제 — try/finally로 카운터 보호 | `#1회검증` |
+| 8 | SerializeReference 자식 인스턴스 deep clone | `#패턴` `#아키텍처` | `Activator.CreateInstance(src.GetType())` + `JsonUtility.ToJson/FromJsonOverwrite` 라운드트립. 새 자식 추가 시 필드 복사 코드 갱신 불필요. SerializeReference 인스턴스 공유로 인한 의도치 않은 전파 방지 (Editor 마이그레이션/SO 일괄 동기화 유틸에 유용). 단, `[SerializeField]`/public 외 필드는 기본값으로 리셋되므로 데이터 전용 자식에만 안전 | `#1회검증` |
+| 9 | 풀별 spawn 위치 캡슐화 (Pool-Position Encapsulation) | `#패턴` `#아키텍처` `#디자인원리` | 동적 UI(popup/floating text) 풀의 Hierarchy 위치 자체가 spawn 위치. 호출자가 `parentRT`를 인자로 안 받고 메서드 이름(`SpawnEnemyDamage`/`SpawnPlayerInstant`)이 풀(=위치) 선택. 효과: 호출 시그니처 축소 + null fallback 누더기 제거 + 디자이너가 씬에서 위치 변경(코드 0). 트레이드오프: 동적 위치 대응 불가 → 적 단일/위치 고정 게임에서 적합. 다중 대상 게임이면 부적합. 함정: 런타임에 형제 GameObject가 추가되면 풀이 first sibling으로 밀려 popup 가려짐 → 매 spawn 시 `transform.SetAsLastSibling()` 호출로 보정 | `#1회검증` |
+| 10 | 단계 표식과 값 reset 책임 분리 (Mark/Reset) | `#패턴` `#아키텍처` `#디자인원리` | 다단계 흐름(단계1=표식 단계, 단계2=실제 적용 단계)에서 단계1은 *플래그만* 설정(Mark), 값 reset은 단계2가 진입 직후 mods 캐싱 후 즉시 호출(Reset). 단일 메서드가 플래그+값 reset을 합쳐 수행하면 단계2 진입 시점에 이미 값이 0이라 가산이 봉쇄되는 함정의 해법. `firstSlotPending` 등 별도 플래그로 단계2 진입 조건 표식. 함정: 단계1 내부에 `yield` 추가 시 `!flag` 체크+셋 동시 통과 race 가능 — atomic check-and-set 또는 단일 컨텍스트 보장 필요 | `#1회검증` |
 
 *인덱스 표가 SOT, 풀노트는 위 승격 트리거 임박 시 작성.*
 
