@@ -20,12 +20,14 @@
 - `#미구현` — 아이디어만 존재
 - `#실험중` — 일부 구현, 검증 진행
 - `#1회검증` — 1개 프로젝트에서 구현 완료 (승격 대기)
+- `#본인적용미정` — 외부 출처에서 검증된 원칙·기법이지만 본인 프로젝트에 적용 사례 없음 (관찰만)
 - `#승격됨→{노트}` — 기존 노트로 이주 완료 (본 노트는 strike-through로 유지)
 - `#기각` — 더 나은 대안 발견 또는 비현실적 판명
 
 ### 분야
 - `#시뮬레이션` `#시간시스템` `#네트워크` `#렌더링` `#AI` `#월드시스템`
 - `#아키텍처` `#알고리즘` `#패턴` `#디자인원리`
+- `#팀워크` `#프로세스` `#성능` `#관찰` `#테스팅`
 
 ### 출처
 - `#자체관찰` `#논문` `#컨퍼런스` `#타게임분석` `#서적`
@@ -56,6 +58,13 @@
 | 18 | enum 멤버 rename + 정수값 보존 (SerializeField/SO YAML 호환) | `#패턴` `#아키텍처` | enum이 SO YAML/세이브 파일에 정수로 직렬화되는 환경(Unity SerializeField, 직접 직렬화 시스템 일반)에서 enum 멤버 의미를 변경하려 할 때 — **이름만 rename + 정수값 보존**으로 직렬화 자산 무손상 마이그레이션 가능. 단순 사례: `SwordMasterMaxHpBonus = 14` → `SwordMasterBattleShield = 14`. SO 에셋의 `effectType: 14` YAML 값은 그대로 유지되어 12개 시너지 SO 모두 재저장 불필요. 적용 가능성: SO/세이브/네트워크 패킷에 enum이 정수 직렬화되는 모든 시스템 (RPG 능력치 효과, 카드 게임 효과, 스킬 트리). 함정: (a) enum 멤버를 *삭제*하거나 정수값을 *재배치*하면 SO YAML의 잔존 값이 다른 의미로 매핑되어 silent corruption — 폐기 멤버는 정수값을 *영구 점유*시키고 새 멤버는 다음 정수값 사용 (CasualStrategy SynergyEffectType의 "폐기 멤버 3·5~13 정수 재사용 금지" 룰), (b) Inspector dropdown의 의미는 enum 이름이므로 디자이너는 새 이름을 보지만 YAML diff는 변화 없음 — review 시 의미 변경을 놓치기 쉬움 → 커밋 메시지/ADR History에 *의미 변경* 명시 필수. 사례: CasualStrategy SynergyEffectType #14 SwordMaster MaxHp → BattleShield (2026-05-20). 트레이드오프: enum 값을 점유하는 dead 멤버가 누적되어 enum 가독성 저하 — 정기 정리 필요 vs 직렬화 호환 우선 | `#1회검증` |
 | 19 | SO 데이터 매핑 키: string ID → SO 직접 참조 전환 (인스펙터 안전성) | `#패턴` `#아키텍처` `#Unity전용` | SO 기반 매핑 테이블(item→animation, monster→drop table 등)에서 키를 `string itemId` 로 두면 인스펙터에서 직접 문자열 입력 → 오타 위험 + 리네임 자동 추적 불가. **개선**: 매핑 룰의 키 필드를 `string` → `TargetSO` 직접 참조로 전환 (`public ItemDataSO sourceItem;`). 인스펙터 드래그앤드롭 + 컴파일 타임 타입 안전 + 리네임/이동 자동 추적. **호출자 무변경 트릭**: 런타임 캐시 빌드 단계에서만 `sourceItem.itemId` 추출하여 기존 `Dictionary<string, T>` 단일 유지 → `Get(string id)` API + 모든 호출자(`Play(inst.data.itemId)` 등) 그대로. 즉 *인스펙터 wiring 시점에만* SO 참조로 안전성 확보, 런타임은 string 유지. 마이그레이션: YAML `itemId: rod` 라인을 `sourceItem: {fileID, guid, type}` 로 일괄 치환(.asset 파일 직접 편집). 적용 가능성: SO 기반 매핑/룩업 테이블이 있는 모든 Unity 시스템 (아이템→이펙트, 적→드롭, 스킬→애니메이션, 카드→아트). 트레이드오프: 매핑 키로 사용할 SO들이 공통 베이스를 안 가지면 매핑 리스트가 베이스별로 N개 분리됨 (예: `ItemDataSO` ↔ `UsableItemDataSO` 분리 베이스 → `itemRules`/`usableItemRules` 2 리스트 + 런타임 캐시는 1 Dictionary 통합). 사례: CasualStrategy `AnimationConfigSO.ItemMappingRule.itemId(string) → sourceItem(ItemDataSO)` + `UsableItemMappingRule` 신설 (2026-05-20). 함정: 매핑 베이스가 abstract면 인스펙터는 파생 SO를 모두 받지만, 파생이 `itemId` 필드를 빈 문자열로 두면 캐시에서 silent 누락 → 빌드 시점 `IsNullOrEmpty` 가드 + 누락 시 `Debug.LogWarning` 권장 | `#1회검증` |
 | 20 | Procedural UI Sprite 런타임 생성 (prefab/asset 추가 없는 단순 효과) | `#패턴` `#렌더링` `#Unity전용` | `Awake`에서 `Texture2D` + `Sprite.Create` 로 procedural sprite 동적 생성 → `image.sprite` 할당. vignette/gradient/border/mask 등 단순 절차적 패턴을 외부 sprite asset 추가 없이 단일 컴포넌트 안에서 self-contained 구현. 파라미터(threshold/power/color 등)를 `[SerializeField]` 로 노출하면 디자이너가 인스펙터에서 미세 조정 + Builder 재실행 불필요. 예: max-norm 사각형 vignette (`d = max(|nx|, |ny|)` + threshold/power smoothstep) → RectTransform stretch 에도 외곽 두께 균일. 적용 가능성: prefab/asset 추가 비용이 크거나, 1-2개 인스턴스만 쓰거나, 파라미터로 런타임에 패턴 모양을 바꾸고 싶은 단순 효과 (피격 vignette, scope mask, focus highlight, health bar gradient). 트레이드오프: (a) 텍스처가 인스턴스별 메모리 점유 — 다수 인스턴스 / 큰 해상도는 정적 asset이 효율적, (b) `OnDestroy`에서 `Destroy(sprite)` + `Destroy(texture)` 명시 호출 필수 — UnityEngine.Object는 GC 미수거이므로 leak 위험, (c) `hideFlags = HideAndDontSave` 로 에디터 인스펙트에 노출 안 되게 처리 권장. 함정: `Image.type = Sliced` 와 procedural sprite 조합 시 border 미설정으로 stretch 깨짐 → `Simple` + `preserveAspect = false` 가 max-norm 패턴엔 자연. 사례: CasualStrategy `HitOverlayFlasher` 256×256 max-norm vignette (`vignetteThreshold = 0.55` / `vignettePower = 1.6`, 2026-05-21). 가장자리 vignette 으로 화면 전체 단색 fill 대비 시야 가림 / 눈 피로 감소 | `#1회검증` |
+| 21 | Mechanical Sympathy (Martin Thompson) | `#패턴` `#성능` `#관찰` | "하드웨어 동작 방식과 호흡 맞추기" — 캐시 라인, branch prediction, false sharing 등을 인지한 코드. CasualStrategy(캐주얼 전략)는 본격 적용 영역 없음. 부분 적용: NonAlloc Physics2D / 풀링뿐. 차후 data-oriented design 또는 Unity DOTS 도입 시 정식 등재 후보. 출처: LMAX Disruptor 구현자, "Mechanical Sympathy" 블로그/컨퍼런스 강연 | `#본인적용미정` |
+| 22 | Conway's Law (Mel Conway, 1968) | `#아키텍처` `#팀워크` `#관찰` | "소프트웨어 구조는 그것을 설계한 조직의 통신 구조를 반영한다". 1인 개발이라 직접 적용 N/A. 다만 인간+AI(Claude) 협업 구조가 `docs/decisions/`(인간 SOT) / `.claude/skills/agents/`(AI 호출 구조) / `CLAUDE.md`(공통 컨텍스트) 분리에 반영 가능성 관찰. 차후 *다인 협업* 또는 *AI 협업 구조 변경* 시 검증 | `#본인적용미정` |
+| 23 | Brooks's Law (Fred Brooks "Mythical Man-Month", 1975) | `#팀워크` `#프로세스` `#관찰` | "늦은 소프트웨어 프로젝트에 인력을 추가하면 더 늦어진다". 1인 + AI 협업이라 직접 적용 N/A. 응용: Plan followup 짝 룰("가정 차이/누락은 즉시 수정 X, 누적 후 일괄")의 동기 — 즉시 수정 = 작업 큐 폭발 + 컨텍스트 전환 비용. 차후 다인 협업 시 정식 검증 | `#본인적용미정` |
+| 24 | Wirth's Law (Niklaus Wirth, 1995) | `#성능` `#관찰` | "소프트웨어가 하드웨어보다 빨리 느려진다". Unity 6 + URP가 본 법칙의 사례 — 엔진 기능 추가가 GPU 성능 압박. CasualStrategy(캐주얼 전략)는 GPU 여유라 묵인. 차후 모바일 빌드 또는 저사양 타겟 시 정식 적용 검토. 출처: "A Plea for Lean Software" 논문 | `#본인적용미정` |
+| 25 | AAA (Arrange, Act, Assert) | `#테스팅` `#패턴` | 테스트 3구조: 사전 상태 셋업 / 동작 호출 / 결과 검증. CasualStrategy 자동화 테스트 미운영(Unity Test Framework 도입 안 함). 차후 도입 시 정식 등재 — `software-principle-notes` 신규 카테고리 H 신설 후보 | `#본인적용미정` |
+| 26 | F.I.R.S.T. (Fast/Independent/Repeatable/Self-validating/Timely) | `#테스팅` `#패턴` | 단위 테스트가 갖춰야 할 5속성. Robert C. Martin "Clean Code" 출처. CasualStrategy 자동화 테스트 미운영. 차후 테스트 도입 시 AAA(#25), Given-When-Then(#27)과 함께 카테고리 H 신설 | `#본인적용미정` |
+| 27 | Given-When-Then (BDD) | `#테스팅` `#패턴` | BDD 시나리오 구조: 사전 조건 / 동작 / 기대 결과. Daniel Terhorst-North BDD 출처. CasualStrategy 자동화 테스트 미운영. AAA(#25)의 자연어 버전 — 도입 시 둘 중 1개 선택 또는 영역별 분리 | `#본인적용미정` |
 
 *인덱스 표가 SOT, 풀노트는 위 승격 트리거 임박 시 작성.*
 

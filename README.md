@@ -9,12 +9,13 @@
 
 ---
 
-## 노트 구조 (8개)
+## 노트 구조 (9개)
 
-### 검증된 패턴 (7개)
+### 검증된 패턴 (8개)
 | 노트 | 다루는 축 | 적용 범위 |
 |------|----------|----------|
 | [design-pattern-notes](design-pattern-notes.md) | 코드 구조 패턴 (GoF + 아키텍처). 재사용 가능한 *관계*의 추상화 | OOP/FP 언어 독립 |
+| [software-principle-notes](software-principle-notes.md) | 일반 소프트웨어 개발 원칙·휴리스틱·해석. 코드 *형태*가 아닌 *판단 기준* | 언어/엔진/도메인 완전 독립 |
 | [math-algorithm-notes](math-algorithm-notes.md) | 게임에 자주 쓰는 수학 빌딩블록과 알고리즘 | 언어/엔진 완전 독립 |
 | [game-technique-notes](game-technique-notes.md) | 게임 *기능*별 구현 기법. "어떻게 묵직한 점프를 만드는가?" | 개념 독립, 구현은 게임엔진 일반 |
 | [game-design-notes](game-design-notes.md) | 디자인 도메인 원리 — 페이싱, 난이도, 피드백 루프, 게임필 | 엔진/언어/장르 독립 |
@@ -138,3 +139,4 @@ csharp-syntax-notes는 예외 — 함정 있는 항목만 풀노트.
 - **CasualStrategy** (2026-05-15) — Unity 6 캐주얼 전략 게임. 7개 노트 최초 정립. 약 100+ 인덱스 항목, 풀노트 3개(Lerp / Asymmetric Jump / Coyote Time / Hold-to-Repeat)
 - **복수 프로젝트** (구일자 미상, 2026-05-15에 회상 등재) — 액션 2D 추정. 본 노트 누락 항목 9개 등재: DefaultExecutionOrder, Physics2D Layer Matrix, Physics2D NonAlloc, Input System (New), Parallax Scrolling, DI 패턴, Domain-Scoped Injection Interface, Streaming Pattern, Animator Layer + Avatar Mask. Rewind 1건은 구현 함정(Animator/물리/AI 상태 동기화 어려움)으로 미등재 — 실제 채택 시점에 등재
 - **idea-notes 신설** (2026-05-16) — 미구현 아이디어/관찰 기법 인박스. 3건 등재: ① 결정론적 시간축 양자 예측(달력 SOT 시뮬레이션, CasualStrategy 도출), ② Rewind 시스템(복수 프로젝트에서 보류, `#미구현`), ③ Sequence ↔ Data 흐름 분리(CasualStrategy G-030 기반, `#1회검증`)
+- **software-principle-notes 신설** (2026-05-21) — CasualStrategy 4원칙(Think Before Coding / Simplicity First / Surgical Changes / Goal-Driven) 정착 후 일반 소프트웨어 원칙으로 추출. 47개 인덱스(카테고리 A~G), 풀노트 9개(#1 YAGNI / #3 DRY / #6 Boy Scout Rule **채택 안 함** / #7 AHA / #9 SRP / #32 SLAP / #38 Make Illegal States Unrepresentable / #42 Hyrum's Law / #43 Postel's Law). idea-notes 인박스 #21~#27 동시 등재(Mechanical Sympathy / Conway's Law / Brooks's Law / Wirth's Law / AAA / F.I.R.S.T. / Given-When-Then — 모두 `#본인적용미정`). 본인 입장 표기 룰: 라벨(`#수용` 등) 금지, *왜 + 어디 적용 / 대안 / 오용 지점* 1줄
