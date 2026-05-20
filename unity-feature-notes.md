@@ -96,6 +96,7 @@
 | 22 | `Resources.Load<T>` (TextAsset / SO / AudioMixer) | Resources 폴더 자산을 런타임 경로 기반 로드 | `#Unity전용` |
 | 23 | TextAsset + 커스텀 JSON Regex 파싱 | 텍스트 파일을 임포트 + 정규식 파싱 (JsonUtility 한계 회피) | `#Unity전용` |
 | 42 | `[SerializeReference]` + 커스텀 `SubclassSelector` PropertyDrawer | abstract/interface 필드를 SO 인라인으로 직렬화 + 인스펙터 드롭다운으로 자식 타입 선택. `[Serializable]` 부모 + 자식 N종, `[SerializeReference, SubclassSelector] public TParent field;`로 선언. struct→reference 마이그레이션은 `FormerlySerializedAs` 미지원 → 1회 마이그레이션 메뉴 필수(legacy 필드 임시 보존하는 2단계 묶음 + 검증 후 삭제). 폴리모피즘 인스턴스 1개로 데이터+동작 응집 (Strategy 패턴의 SO 친화 단순화). 자식이 시너지 enum 등 외부 도메인을 모르고 의존 필드명만 알게 해 결합점 좁힘 | `#Unity전용` `#데이터` `#직렬화` |
+| 43 | `AnimatorOverrideController` 런타임 clip 스왑 + 즉시 평가 + 풀 결합 | base controller 1개에 `placeholder_*` key state를 두고 런타임에 `aoc[key] = data.clip` override로 N개 변형 재생 (적별 모션, 무기별 이펙트 등). `animator.Play(state, 0, 0f)` 직후 `animator.Update(0f)` 호출로 첫 프레임 즉시 평가 — 풀에서 꺼낸 인스턴스가 직전 클립 잔상을 1프레임 노출하는 깜빡임 차단(짧은 클립 4~6프레임에서 두드러짐). 풀+큐 패턴과 결합 시 `animator.enabled = (data.clip != null)` toggle로 Animator/Curve 두 재생 경로 공존. AOC는 Native Object라 GC 대상 아님 → `OnDisable`/`OnDestroy`에서 `Destroy(aoc); aoc = null` 명시 정리 필수 | `#Unity전용` `#Animator` |
 
 ### 에디터
 
