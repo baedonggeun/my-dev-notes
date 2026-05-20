@@ -61,6 +61,7 @@
 | 21 | Domain-Scoped Injection Interface | `#아키텍처` `#인터페이스` `#테스트용이` | 단일 `IInjectable` 대신 도메인별 분리(`IMonsterInjectable`, `IItemInjectable` 등) — 잘못된 인젝터/대상 결합 컴파일 타임 차단 + 도메인 단위 mock 테스트 | `#OOP` `#언어독립` |
 | 22 | Streaming Pattern (영역 토글 / 거리 링) | `#아키텍처` `#성능` | 플레이어 주변만 활성화해 비가시 영역의 CPU·GPU 비용 절감. 원형은 단일 영역 SetActive 토글, 확장형은 거리 링(Active/Warm/Unload) + Pool + Addressables | `#게임엔진일반` |
 | 23 | 단일 이벤트 + 추상 Entry 디스패치 | `#행동` `#이벤트` | `Action<TBase>` 단일 이벤트 + abstract base class로 이종 데이터를 하나의 채널로 발행 — 수신자는 다형성으로 처리, 종류 추가 시 이벤트/수신자 변경 없이 entry 서브클래스만 추가 | `#OOP` `#언어독립` |
+| 24 | 카테고리 SO 분리 vs 번들 SO (Domain Resource Split) | `#아키텍처` `#구조` `#재사용` `#컴포지션` `#ScriptableObject` | 아이템처럼 여러 도메인 정보(스탯·아이콘·애니메이션·SFX·이펙트)를 가진 데이터 자산을, 도메인별 SO + 매핑 테이블로 *분리*할지 / 하나의 완전체 SO로 *번들*할지의 선택. 변종 간 자원 공유 비율이 분기 기준 | `#OOP` `#언어독립` |
 
 ---
 
@@ -146,5 +147,124 @@ on Unload: pool.Release; addressable.Release
   - Revenge: StreamAreaWatcher + PatrolPointGroup (원형, BoxCollider2D + SetActive)
   - 확장형: 미구현 (오픈월드 프로젝트 시 후보)
 - 태그: `#아키텍처` `#성능` `#시스템` `#씬`
+
+---
+
+## 24. 카테고리 SO 분리 vs 번들 SO (Domain Resource Split)
+
+**한 줄 요약**
+아이템처럼 여러 도메인 정보(스탯·아이콘·애니메이션·SFX·이펙트)를 가진 데이터 자산을, 도메인별 SO + 매핑 테이블로 분리할지 / 하나의 완전체 SO로 번들할지의 선택. 자원이 *변종 간 공유*되면 분리, *1:1 고유*면 번들이 유리.
+
+**설명**
+게임 데이터 자산은 보통 다음 도메인을 함께 가진다:
+
+- Identity / Stats (스탯, 가격, 등급)
+- Visual (아이콘, 심볼, 프리팹/모델)
+- Audio (타격/획득/사용 SFX)
+- Animation (사용 이펙트, VFX 클립)
+- Effect / Behavior (능력 로직)
+- Localization (이름/설명)
+
+이를 한 SO에 모두 넣을지(번들), 도메인별 SO + 외부 매핑 테이블로 분리할지가 데이터 설계의 첫 분기점.
+
+**(A) 카테고리 분리 + 매핑 (Category Split + Mapping)**
+- `ItemDataSO`는 스탯·아이콘·식별자만 보유
+- `AnimationConfigSO`/`AudioConfigSO` 등이 `itemId`(또는 `weaponType`, `grade`) → 자원 매핑 테이블 보유
+- 자원은 별도 `ResourceSO`로 존재, 여러 아이템이 참조 공유
+- 게임 업계의 마스터 데이터베이스 + 룩업 패턴 (Diablo/PoE, RPG Maker, 대부분 RPG)
+
+**(B) 완전체 번들 (Bundled / All-in-One)**
+- `ItemDataSO` 하나에 모든 필드 inline (icon, sfx, animClip, ...)
+- 외부 매핑 테이블 불필요. SO 하나를 보면 그 아이템 전부 파악
+- 디자이너 친화 (한 곳에서 편집)
+
+**분기 기준 — 자원 종류별 통상 처리** (RPG/액션/카드 게임 업계 일반)
+
+| 자원 종류 | 통상 처리 | 이유 |
+|---|---|---|
+| 스탯·숫자·식별자 | **번들** (아이템 SO에 inline) | 각 아이템마다 고유, 공유될 일 없음 |
+| 아이콘 (Sprite) | **번들** (개별 참조) | 대부분 1:1, 같은 아이콘 공유 드묾 |
+| 무기군 타격 애니메이션·SFX | **분리** (weaponType/category 매핑) | Sword/Bow/Staff 같은 *카테고리* 단위 공유 |
+| 등급/희귀도 글로우 (Normal/Rare/Epic) | **분리** (grade 매핑) | 모든 Rare가 같은 빛 사용 |
+| 시너지/세트 발동 이펙트 | **분리** (synergy/setId 매핑) | 시너지가 아이템보다 적음, 다대일 |
+| 유니크 무기 전용 효과 | **번들** (해당 SO에 inline) | 그 아이템에만 존재 → 분리 의미 없음 |
+| 능력/효과 로직 (Strategy) | 번들 + `SerializeReference` | 폴리모피즘 + inline 조합 |
+| Localization 텍스트 | **별도 시스템** (Localization Table) | 언어×문자열 다대다, SO 외부 |
+
+**판단 휴리스틱**: "이 자원이 *몇 개의 아이템*에 쓰이는가?"
+- 1:1 (각 아이템 고유) → 번들
+- 1:N (N≥3, 카테고리/등급/시너지 단위 공유) → 분리
+- 또는 "디자이너가 이 자원 하나를 튜닝할 때 *한 군데에서* 하길 원하는가?"가 yes면 분리
+
+**업계 사례**
+- **Diablo / Path of Exile**: ItemBase + Affix(공유 풀) + Visual(타입 매핑). 자원 거의 100% 공유 풀
+- **RPG Maker**: Database에 Items / Animations / SE를 별 탭으로 분리, Item이 Animation ID·SE ID 참조 (전형적 분리 + 매핑)
+- **Unity Atoms / 일반 data-driven**: "ScriptableObject describes things, MonoBehaviour does things" — SO를 atomic하게 쪼개 컴포지션 권장
+- **AAA 그래픽 엔진**: mesh/texture/material/animation 각각 마스터 DB → 인스턴스가 ID 참조 (asset pooling, type object 패턴)
+- **CasualStrategy (2026-05)**: 53개 아이템(BasicItems 21 + CombinedItems 32) / 2개 `AnimationDataSO` → **26:1 공유 비율**. `ItemDataSO` + `AnimationConfigSO(itemRules, synergyRules)` 매핑. SoundConfigSO도 동일 패턴 예정
+
+**구현 — (A) 카테고리 분리 + 매핑 (의사코드)**
+```
+// Resource SO (공유 단위)
+class AnimationDataSO : ScriptableObject:
+    animationId: string
+    clip: AnimationClip
+    duration: float
+
+// Mapping SO (카테고리 → resource)
+class AnimationConfigSO : ScriptableObject:
+    itemRules: List<{itemId, AnimationDataSO}>
+    synergyRules: List<{synergyType, AnimationDataSO}>
+
+// Consumer (lookup via dictionary cache)
+GetAnimation(itemId):
+    return itemAnimDict[itemId]   // built in Awake from itemRules
+```
+
+**구현 — (B) 번들 (의사코드)**
+```
+class ItemDataSO : ScriptableObject:
+    stats: ...
+    icon: Sprite
+    attackAnimClip: AnimationClip      // inline
+    attackSfx: AudioClip               // inline
+    onUseEffect: AbilityEffect         // SerializeReference 폴리모피즘
+```
+
+**구현 — (C) 혼합 (실전 표준)**
+```
+class ItemDataSO : ScriptableObject:
+    stats: ...
+    icon: Sprite                       // 번들 (1:1)
+    weaponType: enum                   // 분리 키 (애니/사운드 룩업용)
+    uniqueEffect: AbilityEffect?       // 번들 (있을 때만)
+
+class AnimationConfigSO : ...           // weaponType → clip 분리
+class AudioConfigSO : ...               // weaponType → sfx 분리
+class GradeVisualConfigSO : ...         // grade → glow material 분리
+```
+
+**주의점**
+- **너무 일찍 분리하지 말 것** — 자원 수가 적고(<5) 공유 빈도 모를 때는 번들로 시작. 같은 자원이 3번째 참조될 때 분리 리팩토링 (Rule of Three). 반대로, 처음부터 카테고리 단위 공유가 명백하면 분리 시작이 마이그레이션 비용 절감
+- **매핑 키 타입 결정** — `string itemId`는 오타 위험 → enum, hash, 또는 SO 직접 참조 권장. 컴파일 타임 검증 vs 디자이너 편의 트레이드오프 (CasualStrategy의 `AnimationConfigSO.itemRules`는 string 키 → 약점, enum 마이그레이션 후보)
+- **카테고리 매핑 룩업 비용** — 매 호출마다 List 순회면 호출자 수 × N → Awake/OnEnable에서 Dictionary 캐싱 필수 (CasualStrategy `DataManager` 패턴)
+- **혼합 정책 권장** — 모든 자원을 같은 방식으로 처리할 필요 없음. 자원별 공유 빈도에 따라 분리/번들 혼용이 일반적. 위 (C) 패턴이 실전 표준
+- **Localization은 항상 별도** — 언어 추가 시 모든 아이템 SO 건드리는 사태 방지. JSON/CSV 테이블 + key 참조가 표준 (Unity Localization Package 또는 자체 시스템)
+- **분리 시 매핑 누락 검증** — 새 아이템 추가했는데 매핑 표에 빠뜨리면 "왜 이펙트 안 나오지" 디버그. fallback 로그 + 에디터 검증 스크립트(MenuItem) 권장
+- **번들에서 폴리모피즘 필요 시** — 효과처럼 종류가 다양한 필드는 inline이라도 abstract base + `[SerializeReference, SubclassSelector]`로 (Unity feature-note #42 참조)
+- **재배치 비용 비대칭** — 초기 번들 → 후기 분리는 마이그레이션 메뉴 1회로 가능 (값 → 매핑 표로 평탄화). 반대(분리 → 번들)는 매핑 데이터를 모든 SO에 다시 inline해야 해 더 번거로움. **의심되면 분리 쪽으로 기울이기**
+- **AssetDatabase 의존 함정** — 매핑 SO가 빈 List/null인 채로 빌드되면 런타임 NRE. OnEnable 캐싱 시 null 가드 + Editor에서 OnValidate로 중복 itemId/null entry 검출
+- **번들의 inspector 무게** — 한 SO에 필드 20+개면 Inspector 스크롤 지옥. Header 그룹화 + `[FoldoutGroup]`(OdinInspector) 또는 분리로 회귀
+
+**메타**
+- 종속성: `#OOP` `#언어독립` (개념). Unity SO는 구현 매체일 뿐 — UE의 DataTable + DataAsset, Godot의 Resource, 일반 JSON 데이터베이스에도 동일 적용
+- 관련 노트:
+  - [[unity-feature-notes]] #2 ScriptableObject (구현 매체), #42 SerializeReference + SubclassSelector (번들에서 폴리모피즘)
+  - [[design-pattern-notes]] #15 Composite (분리 + 매핑의 한 형태), #14 Factory (매핑 룩업이 사실상 자원 팩토리), #7 Strategy (effect를 번들 inline)
+- 첫 도출: CasualStrategy (2026-05-20) — `ItemDataSO` + `AnimationConfigSO(itemRules)` 매핑 구조 분석에서 도출. 53 items / 2 animations (26:1 공유) → 분리가 명백한 정답인 케이스
+- 적용 사례:
+  - CasualStrategy: `ItemDataSO` + `AnimationConfigSO`(itemRules/synergyRules), 추가 예정 `SoundConfigSO` 동일 패턴, `GradeVisualConfigSO` 후보
+  - 업계: Diablo/PoE (Item + Affix + Visual), RPG Maker Database (Items/Animations/SE 분리), AAA asset pooling
+- 태그: `#아키텍처` `#구조` `#재사용` `#컴포지션` `#ScriptableObject` `#데이터`
 
 ---
