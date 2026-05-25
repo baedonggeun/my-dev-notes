@@ -70,6 +70,11 @@
 | 30 | enum별 게임 룰 분류 정적 helper (SO 필드 회피) | `#패턴` `#아키텍처` `#디자인원리` | enum별 정책 판정(중복 허용 여부, 사용 가능 컨텍스트, 슬롯 표시 여부 등)을 SO 스키마에 bool 필드로 추가하면 (a) 기존 SO 에셋 일괄 마이그레이션 필요, (b) 룰 변경 시 SO 모두 재저장 필요, (c) 디자이너가 enum 멤버 간 일관성 못 보고 잘못 셋. 정적 helper(`XxxRules.IsStackable(type)` switch) 1 메서드로 분류 → SO 스키마 무변경, 룰 변경은 enum case 추가만, 디자이너는 인식 안 함(데이터가 아니라 코드 룰). 적용 가능성: enum 분류가 *게임 룰에서 파생*되는 모든 시스템(아이템 효과 분류, 스킬 타입 분류, 상태이상 분류, 데미지 타입 분류). 트레이드오프: 룰 변경 시 디자이너 SO 편집 불가 — 코드 수정 PR 필요. *디자이너 튜닝 필요한 값(damage 수치 등)은 SO에, 게임 룰 분류(이 효과는 중첩 가능한가?)는 helper에*가 자연 경계. 함정: (a) enum 멤버 추가 시 helper 갱신 누락 → switch default 처리(보수적 false/null) + Debug.LogWarning 권장, (b) helper가 매니저/Service 의존성을 가지면 정적 유틸 위배 — 분류 룰은 enum 자체에 닫혀야 함 (다른 컨텍스트 의존 X), (c) 분류 차원이 여러 개면(2축, 3축) helper 메서드 분리 권장(`IsStackable` + `IsUsableInContent` 등 단일 책임). 사례: CasualStrategy `UsableEffectTypeRules.IsStackable` (2026-05-21) | `#1회검증` |
 | 31 | TMP SDF 폰트 atlas 누락 문자 ⇒ □ 폴백 + 매 렌더 경고 | `#Unity전용` `#TMP` `#L10N` `#폴리싱` | TMP_FontAsset 은 ttf 전체 글리프가 아닌 *atlas 빌드 시점에 포함된 글리프만* 보유 → atlas에 없는 codepoint는 fallback(`U+25A1` □)으로 치환 + 매 렌더마다 `Debug.LogWarning` 발생(콘솔 노이즈). 한국어 메인 폰트(Mulmaru SDF 등)는 한글+기본 ASCII만 포함하고 박스 드로잉(`└ ┌ ─ │ ├` U+2500~257F)은 누락 일반적. L10N 리소스에 트리 들여쓰기/특수 기호 넣기 전에 *기존 폰트 사용 문자 풀*에서 골라 쓰기(예: middle dot `·` U+00B7은 element_desc 류에서 이미 사용 중이라 안전 확인됨). 적용 가능성: TMP 사용하는 모든 Unity 프로젝트 + L10N JSON/string 리소스에 특수 문자 넣는 모든 케이스. 트레이드오프: 폰트 atlas에 글리프 추가는 별도 빌드 작업(atlas 재생성 + 메모리 증가) — 가벼운 들여쓰기 표시는 atlas 확장보다 안전 문자 대체가 비용 낮음. 함정: (a) 에디터 미리보기에서는 fallback 폰트 chain이 작동해 정상 표시되어 보일 수 있음 — 실제 런타임 콘솔에서만 경고 노출, (b) `·` 자체도 SDF 매핑 없는 폰트면 동일 문제 — 신규 폰트 도입 시 사용 중인 모든 특수문자 재검증 필요, (c) atlas regenerate를 미루다 누락 문자가 누적되면 일괄 점검 비용 — 신규 키 추가 시 즉시 검증이 저렴. 사례: CasualStrategy `tooltip_hp_*_fmt` 키의 `└`(U+2514) → `·`(U+00B7) 교체 (2026-05-21) | `#1회검증` |
 | 32 | Push-based Materialized Spec invalidation | `#패턴` `#아키텍처` `#디자인원리` | 여러 소스(SO + 누적 상태 + 외부 조회)를 lazy 합산해 *사용 시점*(공격 신호 등)에 산출하면 "현재 최종값이 어디에도 존재하지 않음" — UI/툴팁/예측창이 그 값을 표시할 방법이 없음. push-based 전환: invalidation 트리거(슬롯 변경/소모품 사용/외부 상태 변경)마다 산출 후 컨테이너에 저장, UI는 값만 읽음. 3 책임 분리: `*Service`(POCO, 외부 상태 수집 + Calculator 호출, Manager 위임), `*Calculator`(static pure function, 정적 매니저 의존 0, 단위 테스트 가능), `*Controller`(UIBinderBase, 외부 이벤트 → Recalculate wiring + SerializeField 의존 가드). 단일 진입점 `Recalculate(InvalidationSource src)` + enum N종 source (`SynergyTier`/`BattleStart`/`Usable`/`MapMove`/`Dev`/`Init`). spec 반영 기준 정책 — *확정 가산/곱*만 spec, *확률 발동값*은 spec 미반영 + 라벨 표시: "spec.finalMax를 보장" 약속을 깨지 않기 위함 (실제 데미지는 발동 여부에 따라 변동). 의존 추적 3축 SOT — ADR §의존 필드 표(정답) + `[*Dependency]` 어트리뷰트(필드 한정, grep 가시화 부속, 메서드 호출 결과는 어트리뷰트 마킹 불가) + enum source 일치. 신규 의존 추가 3-step: ADR 표 → 어트리뷰트 → enum + wiring. 호버 중 갱신 race는 *stale 허용* 정책으로 회피 (이벤트 미발화 + UI 재계산 부담 회피, 호버 떼고 재호버 시 최신값). 적용 가능성: 합산 결과를 UI/툴팁/예측창에 표시해야 하는 모든 시스템 — 데미지 산출, 디버프 누적 시각화, 리소스 생산률 미리보기, 스탯 시뮬레이션, 데미지 캘큘레이터 UI(RPG/카드/대전략 전반). 트레이드오프: invalidation 트리거 누락 시 spec stale → 3-step 의무 + 정기 grep 검증으로 차단. lazy 단순성 포기 대신 UI 표시성 + 책임 분리 명확화 획득. 함정: (a) 확률 발동값을 spec에 합산하면 "spec.finalMax 보장" 약속 깨짐 — 정책으로 spec 미반영 + 라벨 분리 표시 강제, (b) 인스펙터 SerializeField 의존 누락 시 Controller 동작 0건 → 3중 가드(Subscribe 런타임 LogError + OnValidate 인스펙터 경고 + 빌더 단언). 사례: CasualStrategy `WeaponRuntimeSpec`/`WeaponSpecService`/`WeaponSpecCalculator`/`WeaponSpecsController` (2026-05-21, plan-materialized-weapon-spec 5묶음) | `#1회검증` |
+| 33 | Slot N축 layered vignette + panel-level binder + 동적 sprite | `#패턴` `#Unity전용` `#렌더링` | 슬롯형 UI에 다중 상태(N효과)를 동시 시각화할 때 슬롯당 N Image stretch 정적 배치 + 각 Image color로 상태 식별 + GameObject.SetActive 토글. sprite는 외곽 fade-out white 1장 공유(view Awake에서 코드 동적 생성, #20 procedural sprite 적용) — PNG 자산 0개 + Image.color로 색 분기 + alpha 가산색 중첩 표현. **panel-level binder 1개가 M 슬롯 view 일괄 갱신** (slot-level binder 인스턴스 M개 패턴은 OnEnable M번 발화 + Refresh 분산 + 디버깅 분기 비용 증가, 기존 panel-level binder 사례 0건이면 panel-level 채택). binder는 SerializeField `views[M]` 배열 인스펙터 와이어 — 정렬이 슬롯 인덱스와 1:1 일치 필수 (인스펙터 수동 설정, 빌더 단언 미보유). `raycastTarget=false` 필수 (view AssignSprite에서 코드 1줄 안전망 권장) — vignette이 슬롯 드래그/클릭 가로채지 않게. 적용 가능성: 슬롯형 UI(인벤토리/큐/장비/카드 슬롯)에 N 상태 동시 표시가 필요한 모든 시스템 — 강화/디버프/속성/임시 효과 등 다축 시각화. 트레이드오프: prefab YAML에 슬롯당 N+1 GameObject 추가 작업(5슬롯×4효과 = 20 Image entry, Builder 미사용 시 인스펙터 수동 — Ctrl+D 복제로 일관성 보장). 함정: (a) 5 슬롯의 N Image color 인스펙터 입력 반복 시 alpha 슬라이더 누락 빈발 ([[34]] 참조), (b) raycastTarget true로 두면 vignette이 슬롯 인터랙션 가로챔 — 코드 안전망 1줄 추가, (c) Awake에서 sprite 동적 생성 시 OnDestroy cleanup 필수 (Destroy(sprite) + Destroy(texture), UnityEngine.Object GC 미수거). 사례: CasualStrategy `WeaponSlotVignetteView`/`WeaponSlotVignetteUIBinder` 4 효과 (slot0 DmgUp/전 슬롯 DmgUp/속성/Stun, 2026-05-21 slot-enhancement-lifecycle ADR §D-3) | `#1회검증` |
+| 34 | 인스펙터 alpha 슬라이더 누락 함정 (multi-Image color 반복 입력) | `#Unity전용` `#관찰` `#폴리싱` | M 슬롯 × N Image 색 입력을 인스펙터에서 반복 작업 시 Color picker의 alpha 슬라이더는 RGB와 별개 입력 필요 — (a) 6자리 hex(`#RRGGBB`) 입력 시 alpha 변경 안 됨 (이전 default 유지, 새 picker는 alpha=0이 default일 수 있음), (b) RGB 슬라이더와 alpha 슬라이더가 분리돼 다수 칸 반복 입력 시 한두 칸 alpha 누락 발생, (c) Color picker 새로 열렸을 때 default alpha가 이전 작업 잔존값으로 표시될 수 있음. 증상: 코드 경로/데이터 모두 정상이고 `GameObject.SetActive(true)` 호출까지 검증되는데도 특정 슬롯의 특정 Image만 runtime 화면에 안 보임 — 디버깅 시 코드부터 의심해서 시간 낭비. 진단: 의심 슬롯의 Image Color picker A 슬라이더 직접 확인 — 0이면 의도값(예: 100/255)으로 수정. 예방: **슬롯 1개 prefab 완성 후 Ctrl+D 복제** (RGBA 일관성 보존, M회 반복 입력 회피). 적용 가능성: 인스펙터에서 다수 UI 요소 색 반복 입력하는 모든 Unity 작업 — vignette 패턴, 멀티 슬롯 grade backround, 카드 색 분류, ability 아이콘 tint 등. 디자이너 인계 시 "alpha 슬라이더 별도 확인" 체크리스트 필수. 함정: 8자리 hex 입력(`#RRGGBBAA`)으로 alpha까지 한 번에 설정 가능하지만 디자이너가 8자리 사용 습관 없으면 무의미. 트레이드오프: 정적 sprite (외부 PNG에 alpha 포함) 사용 시 인스펙터 alpha 무관 — 동적 색 분기가 필요한 경우만 발생. 사례: CasualStrategy WeaponSlot_1/_2 Element Image alpha=0 → Wind 풍속성 버프 vignette 안 보임 (2026-05-21, [[33]] 사례에서 발견) | `#1회검증` |
+| 35 | 이벤트 vs 직접 호출 분리 (같은 시점, 각 메커니즘 단일 진입점) | `#패턴` `#아키텍처` `#디자인원리` | 같은 트리거 시점(예: 소모품 사용)에서 두 메커니즘(spec 재계산 + UI vignette 갱신)을 모두 구동해야 할 때, 두 메커니즘을 같은 이벤트 1개에 구독시키면 (a) 이벤트 구독자가 늘수록 발화 비용 증가, (b) 발화 순서 비결정성, (c) 일부 구독자만 디버깅 분리 어려움. 해결: **각 메커니즘 단일 진입점 보존** — spec 재계산은 발화 책임자(handler)가 직접 호출(`Recalculate(InvalidationSource.X)`), UI 갱신은 이벤트(`OnXxxChanged`) 발화로 분리. 같은 시점에 두 경로 병렬 진행하되 이중 호출 회피 + 각 메커니즘의 진입점이 1개라 디버깅·테스트 명확. 발화 순서는 결정 (예: 직접 호출 → 이벤트). 적용 가능성: UI 갱신·캐시 무효화·로깅·analytics 등 *부수 효과*가 *핵심 도메인 로직*과 같은 시점에 발생하는 모든 시스템. 핵심 도메인은 직접 호출(컴파일 타임 추적 가능), 부수 효과는 이벤트(런타임 동적 구독). 트레이드오프: 발화 위치 N개 모두에서 두 경로(직접 호출 + 이벤트 발화) 호출 코드 중복 — 헬퍼 함수로 묶을 수 있지만 추상화 비용. 함정: 발화 위치 누락 시 두 메커니즘 중 하나만 stale 가능 — 발화 위치 enumeration ADR에 명시 + 신규 추가 시 의무화. 사례: CasualStrategy `BattleManager.OnUsableModsChanged` 이벤트는 vignette 전용, `WeaponSpecs.Recalculate(Usable)` 직접 호출과 분리 (2026-05-21 slot-enhancement-lifecycle ADR §D-4). 같은 3 발화 위치(Apply/RunPlayerTurn 말미/StartBattle)에서 두 호출 병렬 | `#1회검증` |
+| 36 | 자식 ADR이 부모 ADR 사전 hook 위탁 (계층 plan 협업 패턴) | `#패턴` `#프로세스` `#디자인원리` | 부모 plan/ADR이 향후 자식 plan/ADR에서 추가될 의존을 알면서 인프라를 사전 제공할 때 — **시그니처 hook + `_ = unused;` 자리표시 + 주석 명시**로 자식 plan 진입 비용을 줄이고 코드 정합 보장. 예: 부모 ADR이 `Calculator.Compute(int slotIdx, ...)` 시그니처에 `slotIdx` 인자를 추가하면서 본문에 `_ = slotIdx; // 후속 plan-X에서 slot0 합산 시 사용` 주석 hook을 남김 → 자식 plan은 이 인자를 활용해 1줄 추가만으로 결합 완료, Calculator 시그니처 변경(부모 ADR 짝 갱신) 불필요. 또한 부모 ADR §의존 필드 표에 자식이 추가할 필드 행을 미리 마련하거나 enum source(`InvalidationSource.Usable`)를 사전 정의. 적용 가능성: 다중 plan 계층으로 도메인을 점진 확장하는 모든 협업 환경 — ADR 단위 작업이 여러 sprint/세션에 걸쳐 진행되는 경우. 메타: 부모 plan이 "내가 모든 걸 다 하지 않고 일부는 자식 plan에 위임"이라는 책임 분담 명시 + 자식이 진입 시 부모의 hook을 즉시 발견 가능(`_ = unused;` 주석 + ADR §의존 필드 표 빈 행). 트레이드오프: 부모 ADR이 자식의 구체 사항을 미리 알아야 한다는 결합 — 자식 plan 폐기 시 hook이 dead code로 잔존(주석으로 의도 명시 필수). 함정: (a) hook이 너무 모호하면 자식 plan 작성자가 의도 못 읽음 → 주석에 자식 plan 파일명 또는 GitHub issue 링크 명시, (b) 부모 hook과 자식 plan 사이 시간 격차가 길면 부모 hook이 잊혀짐 → ADR `Future Work` 섹션에 자식 plan 트리거 명시. 사례: CasualStrategy weapon-runtime-spec ADR §D-2 (Calculator `slotIdx` 인자 + `_ = slotIdx;` 주석 hook + §라이프사이클 의존 행 "후속 plan-slot-enhancement-lifecycle" 명시) → 자식 slot-enhancement-lifecycle ADR이 1줄(`if (slotIdx == 0) ...`) 추가로 결합 완료 (2026-05-21) | `#1회검증` |
+| 37 | Claude Code 듀얼 모델 라우팅 / settings.local.json env 우선순위 함정 | `#프로세스` `#관찰` | `settings.local.json` `env` 블록이 셸 $PROFILE env보다 우선 주입됨 → DeepSeek 기본 + Claude opt-in 구성에서 이 블록이 잘못 남아있으면 모든 세션이 덮어씌워짐. 해결: 블록 삭제 대신 DeepSeek/Claude 값을 명시적으로 기록, toggle 스크립트로 전환 | `#1회검증` |
 
 *인덱스 표가 SOT, 풀노트는 위 승격 트리거 임박 시 작성.*
 
@@ -220,3 +225,68 @@
 - 출처: `#자체관찰`
 - 등재: 2026-05-16
 - 승격 후보 노트: [[design-pattern-notes]] (구조 패턴) 또는 [[game-technique-notes]] (게임 기능) — 2프로젝트 검증 시 결정
+
+## 37. Claude Code 듀얼 모델 라우팅 / settings.local.json env 우선순위 함정
+
+**한 줄 요약**
+`settings.local.json`의 `env` 블록은 셸 $PROFILE env보다 우선 주입된다 — DeepSeek 기본 + Claude opt-in 구성에서 이 블록이 잘못 남아있으면 모든 Claude Code 세션이 덮어씌워진다.
+
+**출처/맥락**
+- 첫 도출: CasualStrategy (2026-05-25) — DeepSeek 기본/$PROFILE 설정 후에도 VSCode 확장 세션이 Claude에 연결되던 문제 디버깅 중 발견
+- 환경: Claude Code CLI + VSCode 확장 + PowerShell $PROFILE + DeepSeek API (Anthropic-compatible endpoint)
+
+**문제 원인 상세**
+
+Claude Code는 기동 시 다음 순서로 env를 결정한다:
+
+```
+settings.local.json env 블록   ← 최우선 (셸 env 덮어씀)
+    ↑ 이것이 있으면 아래는 무시
+$PROFILE env (DeepSeek 설정)   ← 셸 기동 시 주입
+    ↑ VSCode 확장 프로세스는 이것을 안 가질 수 있음
+프로세스 상속 env              ← VSCode를 어디서 열었느냐에 따라 다름
+```
+
+**발생했던 구체 시나리오 2가지**
+
+1. **settings.local.json에 Claude URL 잔존**: 테스트/디버깅 중 `ANTHROPIC_BASE_URL = https://api.anthropic.com`을 env 블록에 넣었다가 지우지 않음 → $PROFILE에 DeepSeek 설정해도 모든 세션이 Claude로 강제됨
+2. **toggle 스크립트가 "삭제"로 DeepSeek 복귀 시도**: `settings.local.json` env 블록을 삭제하면 셸 env 상속에 의존하는데, VSCode 확장 프로세스는 $PROFILE 없이 시작될 수 있음(VSCode를 시작 메뉴/바로가기로 열면 $PROFILE 미소싱) → env 없음 = Anthropic 기본값으로 폴백
+
+**해결**
+
+- **settings.local.json env 블록을 삭제하지 말고 명시적으로 기록**: DeepSeek 모드 ↔ Claude 모드 전환 시 해당 값을 완전히 기록
+- **toggle 스크립트 수정** (`d:\AI\toggle-claude-model.ps1`): "DeepSeek 복귀 = 블록 삭제" → "DeepSeek 복귀 = DeepSeek env 블록 명시 기록"
+
+```powershell
+# DeepSeek 모드 (settings.local.json env 블록)
+{
+  "ANTHROPIC_BASE_URL": "https://api.deepseek.com/anthropic",
+  "ANTHROPIC_AUTH_TOKEN": "sk-...",
+  "ANTHROPIC_MODEL": "deepseek-v4-pro[1m]",
+  ...
+}
+
+# Claude 모드 (settings.local.json env 블록)
+{
+  "ANTHROPIC_BASE_URL": "https://api.anthropic.com"
+  // AUTH_TOKEN 없음 → OAuth 사용
+}
+```
+
+- **VSCode 터미널 단축 함수** ($PROFILE에 추가): `function tm { & d:\AI\toggle-claude-model.ps1 }` → `tm` 한 번으로 전환 + "Restart Claude Code session to apply." 출력
+
+**핵심 주의사항**
+
+- `ANTHROPIC_AUTH_TOKEN`을 Claude 모드 env 블록에 넣으면 안 됨 → Pro 플랜 OAuth가 아닌 API 크레딧으로 과금됨 ("Credit balance is too low" 에러 원인)
+- settings.local.json은 `.gitignore`에 포함 → API 키 기록 안전
+- 설정 변경 후 Claude Code 세션 재시작 필수 (실행 중에는 반영 안 됨)
+
+**적용 가능성**
+Claude Code + 외부 LLM API(DeepSeek/OpenAI-compatible/Azure 등) 듀얼 라우팅 구성 모든 경우. `settings.local.json` env 블록은 개발 환경 오버라이드의 최우선 채널이므로 잘못 남아있으면 $PROFILE/시스템 env를 모두 무력화한다.
+
+**메타**
+- 상태: `#1회검증` (CasualStrategy 환경 수정 완료, 2026-05-25)
+- 분야: `#프로세스` `#관찰`
+- 출처: `#자체관찰`
+- 등재: 2026-05-25
+- 승격 후보: 도구 설정 관련 항목이 3개 이상 누적되면 `devenv-notes.md` 신설 후 이주
