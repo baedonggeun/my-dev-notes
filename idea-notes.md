@@ -75,6 +75,7 @@
 | 35 | 이벤트 vs 직접 호출 분리 (같은 시점, 각 메커니즘 단일 진입점) | `#패턴` `#아키텍처` `#디자인원리` | 같은 트리거 시점(예: 소모품 사용)에서 두 메커니즘(spec 재계산 + UI vignette 갱신)을 모두 구동해야 할 때, 두 메커니즘을 같은 이벤트 1개에 구독시키면 (a) 이벤트 구독자가 늘수록 발화 비용 증가, (b) 발화 순서 비결정성, (c) 일부 구독자만 디버깅 분리 어려움. 해결: **각 메커니즘 단일 진입점 보존** — spec 재계산은 발화 책임자(handler)가 직접 호출(`Recalculate(InvalidationSource.X)`), UI 갱신은 이벤트(`OnXxxChanged`) 발화로 분리. 같은 시점에 두 경로 병렬 진행하되 이중 호출 회피 + 각 메커니즘의 진입점이 1개라 디버깅·테스트 명확. 발화 순서는 결정 (예: 직접 호출 → 이벤트). 적용 가능성: UI 갱신·캐시 무효화·로깅·analytics 등 *부수 효과*가 *핵심 도메인 로직*과 같은 시점에 발생하는 모든 시스템. 핵심 도메인은 직접 호출(컴파일 타임 추적 가능), 부수 효과는 이벤트(런타임 동적 구독). 트레이드오프: 발화 위치 N개 모두에서 두 경로(직접 호출 + 이벤트 발화) 호출 코드 중복 — 헬퍼 함수로 묶을 수 있지만 추상화 비용. 함정: 발화 위치 누락 시 두 메커니즘 중 하나만 stale 가능 — 발화 위치 enumeration ADR에 명시 + 신규 추가 시 의무화. 사례: CasualStrategy `BattleManager.OnUsableModsChanged` 이벤트는 vignette 전용, `WeaponSpecs.Recalculate(Usable)` 직접 호출과 분리 (2026-05-21 slot-enhancement-lifecycle ADR §D-4). 같은 3 발화 위치(Apply/RunPlayerTurn 말미/StartBattle)에서 두 호출 병렬 | `#1회검증` |
 | 36 | 자식 ADR이 부모 ADR 사전 hook 위탁 (계층 plan 협업 패턴) | `#패턴` `#프로세스` `#디자인원리` | 부모 plan/ADR이 향후 자식 plan/ADR에서 추가될 의존을 알면서 인프라를 사전 제공할 때 — **시그니처 hook + `_ = unused;` 자리표시 + 주석 명시**로 자식 plan 진입 비용을 줄이고 코드 정합 보장. 예: 부모 ADR이 `Calculator.Compute(int slotIdx, ...)` 시그니처에 `slotIdx` 인자를 추가하면서 본문에 `_ = slotIdx; // 후속 plan-X에서 slot0 합산 시 사용` 주석 hook을 남김 → 자식 plan은 이 인자를 활용해 1줄 추가만으로 결합 완료, Calculator 시그니처 변경(부모 ADR 짝 갱신) 불필요. 또한 부모 ADR §의존 필드 표에 자식이 추가할 필드 행을 미리 마련하거나 enum source(`InvalidationSource.Usable`)를 사전 정의. 적용 가능성: 다중 plan 계층으로 도메인을 점진 확장하는 모든 협업 환경 — ADR 단위 작업이 여러 sprint/세션에 걸쳐 진행되는 경우. 메타: 부모 plan이 "내가 모든 걸 다 하지 않고 일부는 자식 plan에 위임"이라는 책임 분담 명시 + 자식이 진입 시 부모의 hook을 즉시 발견 가능(`_ = unused;` 주석 + ADR §의존 필드 표 빈 행). 트레이드오프: 부모 ADR이 자식의 구체 사항을 미리 알아야 한다는 결합 — 자식 plan 폐기 시 hook이 dead code로 잔존(주석으로 의도 명시 필수). 함정: (a) hook이 너무 모호하면 자식 plan 작성자가 의도 못 읽음 → 주석에 자식 plan 파일명 또는 GitHub issue 링크 명시, (b) 부모 hook과 자식 plan 사이 시간 격차가 길면 부모 hook이 잊혀짐 → ADR `Future Work` 섹션에 자식 plan 트리거 명시. 사례: CasualStrategy weapon-runtime-spec ADR §D-2 (Calculator `slotIdx` 인자 + `_ = slotIdx;` 주석 hook + §라이프사이클 의존 행 "후속 plan-slot-enhancement-lifecycle" 명시) → 자식 slot-enhancement-lifecycle ADR이 1줄(`if (slotIdx == 0) ...`) 추가로 결합 완료 (2026-05-21) | `#1회검증` |
 | 37 | Claude Code 듀얼 모델 라우팅 / settings.local.json env 우선순위 함정 | `#프로세스` `#관찰` | `settings.local.json` `env` 블록이 셸 $PROFILE env보다 우선 주입됨 → DeepSeek 기본 + Claude opt-in 구성에서 이 블록이 잘못 남아있으면 모든 세션이 덮어씌워짐. 해결: 블록 삭제 대신 DeepSeek/Claude 값을 명시적으로 기록, toggle 스크립트로 전환 | `#1회검증` |
+| 38 | Caveman — LLM 출력 토큰 압축 skill | `#프로세스` `#관찰` | AI 코딩 에이전트 응답을 "원시인 스타일"로 압축해 출력 토큰 ~65% 절감. SKILL.md 1파일로 /caveman opt-in 또는 SessionStart hook으로 자동 활성화. caveman-compress로 CLAUDE.md 등 입력 파일도 영구 압축 가능 | `#1회검증` |
 
 *인덱스 표가 SOT, 풀노트는 위 승격 트리거 임박 시 작성.*
 
@@ -225,6 +226,47 @@
 - 출처: `#자체관찰`
 - 등재: 2026-05-16
 - 승격 후보 노트: [[design-pattern-notes]] (구조 패턴) 또는 [[game-technique-notes]] (게임 기능) — 2프로젝트 검증 시 결정
+
+## 38. Caveman — LLM 출력 토큰 압축 skill
+
+**한 줄 요약**
+AI 코딩 에이전트 응답을 "원시인 스타일"로 압축해 출력 토큰 ~65% 절감. SKILL.md 1파일이면 충분, SessionStart hook으로 자동 활성화도 가능.
+
+**출처/맥락**
+- 출처: [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) 오픈소스 / 유튜브 소개 영상 (2026-05-25 발견)
+- 원리: `SKILL.md` frontmatter + 압축 규칙 본문 → Claude Code 스킬로 로드 → 이후 응답에 규칙 적용
+- 핵심 효과: 출력 토큰 ~65% 절감 (벤치마크 기준 최대 87%), 컨텍스트 성장 속도 감소로 입력 토큰도 간접 절감
+- 논문 근거: 2026-03 논문 — LLM에 짧게 답하도록 강제 시 정확도 오히려 상승 (말 늘리다 논리 꼬이는 현상 방지)
+
+**구조 / 채택 방식**
+
+| 컴포넌트 | 역할 | 채택 여부 |
+|----------|------|----------|
+| `/caveman` SKILL.md | 압축 모드 opt-in (lite/full/ultra 3단계) | ✅ CasualStrategy |
+| `/caveman-compress` SKILL.md | CLAUDE.md 등 입력 파일 영구 압축 (Python 없이 Claude 세션 직접) | ✅ CasualStrategy |
+| SessionStart hook | 매 세션 자동 주입 (깜빡 방지 + 컨텍스트 압축 후 재주입) | ✅ CasualStrategy |
+| Stats 추적 (Node.js) | 절감 토큰량 누적 시각화 | ❌ 불채택 (복잡도 대비 가치 낮음) |
+| Wenyan 한자 모드 | 한자 문언문으로 극한 압축 | ❌ 불채택 (한국어 프로젝트 불필요) |
+
+**자동 주입 vs 수동 /caveman 토큰 차이**
+- 차이 없음. 둘 다 동일한 SKILL.md 내용(~500토큰)을 컨텍스트에 추가.
+- SessionStart의 가치는 토큰이 아닌 **신뢰성** — 깜빡 방지 + 컨텍스트 압축 후 drift 방지.
+- 절감 본체는 출력 토큰 감소. 평균 응답 500토큰 기준 약 325토큰/턴 절감 → SKILL.md 비용 2턴 이내 회수.
+
+**적용 가능성**
+- Claude Code, Cursor, Windsurf, Cline, Copilot 등 40+ 에이전트 지원 (원본 도구 기준)
+- Claude Code 한정: `.claude/skills/caveman/SKILL.md` 하나로 충분. Node.js 불필요.
+- `caveman-compress`: CLAUDE.md / MEMORY.md 등 매 세션 로드되는 대용량 자연어 파일에 효과 최대. 코드 파일(.cs/.json 등)은 압축 대상 아님.
+- karpathy 원칙 2(사용자 자율) 정합: opt-in(/caveman) 또는 session-scoped 자동(SessionStart). 강제 차단 없음.
+
+**메타**
+- 상태: `#1회검증` (CasualStrategy 적용 완료, 2026-05-25)
+- 분야: `#프로세스` `#관찰`
+- 출처: `#서적` (유튜브 영상 → GitHub)
+- 등재: 2026-05-25
+- 승격 후보: `devenv-notes.md` (도구 설정 항목 3개 이상 누적 시, #37과 함께)
+
+---
 
 ## 37. Claude Code 듀얼 모델 라우팅 / settings.local.json env 우선순위 함정
 
