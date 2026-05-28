@@ -849,41 +849,94 @@ AudioManager.Instance.Play("hit");
 
 ---
 
-## 20. DI (Dependency Injection)
+## 20. DI (Dependency Injection) + 생성자 주입
 
 **한 줄 요약**
-객체가 의존성을 직접 생성/탐색하는 대신 외부에서 주입받아 결합도를 낮추고 테스트 가능성을 높이는 패턴.
+객체가 의존성을 직접 생성/탐색하는 대신 외부에서 주입받아 결합도를 낮추고 테스트 가능성을 높이는 패턴. 세 가지 주입 방식 중 생성자 주입이 가장 명시적이고 권장.
 
 **설명**
 ```csharp
 // DI 없이 — 강결합
-class PlayerAttack { AudioService _audio = new AudioService(); }  // 교체 불가
+class BattleService { SynergyService _synergy = new SynergyService(); }  // 교체 불가
 
-// 생성자 주입 (가장 명시적, 권장)
-class PlayerAttack
+// 생성자 주입 — 의존성이 명시적 계약
+class BattleService
 {
-    readonly IAudioService _audio;
-    public PlayerAttack(IAudioService audio) { _audio = audio; }
+    readonly IRunDataRepository _repo;
+    readonly ISynergyService    _synergy;
+
+    public BattleService(IRunDataRepository repo, ISynergyService synergy)
+    {
+        _repo    = repo;
+        _synergy = synergy;
+    }
 }
-var attack = new PlayerAttack(new AudioService());    // 실제
-var attack = new PlayerAttack(new MockAudioService()); // 테스트
+
+var svc = new BattleService(new RunDataRepository(), new SynergyService()); // 실제
+var svc = new BattleService(new FakeRepo(), new FakeSynergyService());       // 테스트
 ```
 
-세 가지 주입 방식:
-- **생성자 주입** — 의존성이 필수일 때. 가장 명시적
-- **프로퍼티 주입** — 선택적 의존성. `public IAudioService Audio { get; set; }`
-- **메서드 주입** — 특정 호출 시점에만 필요. `void Init(IAudioService audio)`
+**세 가지 주입 방식 비교**:
+| 방식 | 예시 | 의존성 가시성 | null 위험 | 언제 쓰나 |
+|---|---|---|---|---|
+| **생성자 주입** | `new Foo(dep)` | 명시적 (필수) | 없음 (`readonly`) | 필수 의존성 |
+| **프로퍼티 주입** | `foo.Dep = dep` | 숨겨짐 (선택적) | 있음 | 선택적 의존성 |
+| **메서드 주입** | `foo.Init(dep)` | 호출 시점 한정 | 있음 | 호출마다 다른 의존성 |
 
-Unity에서는 `[SerializeField]`로 Inspector에서 참조를 끌어다 놓는 것도 Property Injection의 일종.
+생성자 주입의 세 가지 이점:
+1. **의존성이 명시적** — 클래스 선언만 봐도 "이걸 만들려면 뭐가 필요한지" 알 수 있다
+2. **readonly 보장** — 생성 후 의존성 교체 불가 → 상태 예측 가능
+3. **테스트 용이** — Mock/Stub을 주입하면 단위 테스트 가능
+
+Unity에서는 `[SerializeField]`로 Inspector에서 참조를 끌어다 놓는 것도 프로퍼티 주입의 일종.
+
+**Unity에서의 제약과 대안**
+
+`MonoBehaviour`는 `new()`로 생성 불가 → 생성자 주입을 직접 쓸 수 없다.
+
+```csharp
+// 방법 1 — Initialize() 메서드 주입 (가장 흔한 Unity 패턴)
+public class BattleUIBinder : MonoBehaviour
+{
+    private BattleService _battle;
+
+    public void Initialize(BattleService battle)
+    {
+        _battle = battle;
+    }
+}
+
+// 방법 2 — Service는 MonoBehaviour 미상속 → 생성자 주입 그대로 사용
+public class SynergyService           // MonoBehaviour 상속 안 함
+{
+    private readonly IRunDataRepository _repo;
+    public SynergyService(IRunDataRepository repo) { _repo = repo; }
+}
+
+// Manager(MonoBehaviour)가 Service를 생성할 때 주입
+public class BattleManager : MonoSingleton<BattleManager>
+{
+    private SynergyService _synergyService;
+
+    private void Awake()
+    {
+        // Manager가 의존성을 조립해서 Service에 주입
+        _synergyService = new SynergyService(RunDataRepository.Instance);
+    }
+}
+```
+
+CasualStrategy의 구조가 정확히 이 패턴 — Manager는 MonoBehaviour 싱글턴, Service는 비MonoBehaviour이므로 Service는 생성자 주입 사용. Manager가 진입점이자 조립 지점 역할.
 
 **주의점**
-- **생성자 파라미터 폭발** — 의존성 5개 이상이면 너무 많은 일을 하는 클래스 신호. 책임 분리 필요
-- **인터페이스 남발** — 교체 계획 없는 의존성에 인터페이스 만드는 것은 오버엔지니어링. 테스트/교체 가능성이 실제로 있을 때만
-- **Unity DI 프레임워크** — VContainer, Zenject 등이 있지만 간단한 프로젝트는 수동 DI(Manager → Service 패턴)로 충분
+- **생성자 파라미터 폭발** — 의존성 5개 이상이면 SRP(software-principle #9) 위반 신호. 책임 분리 필요
+- **인터페이스 남발** — 교체/테스트 계획 없는 의존성에 인터페이스 만드는 것은 오버엔지니어링. 구체 클래스 직접 주입도 충분한 경우 많음
+- **MonoBehaviour 메서드 주입의 타이밍** — `Initialize()`를 Awake/Start 어느 시점에 호출하느냐에 따라 의존성이 null인 채로 Update가 돌 수 있음. `Initialize` 미호출 시 guard 필요
+- **Unity DI 프레임워크** — VContainer, Zenject 등이 있지만 간단한 프로젝트는 수동 DI(Manager → Service 패턴)로 충분. 프레임워크 도입은 의존성 그래프가 복잡해진 시점에 검토
 
 **메타**
 - 종속성: `#OOP` `#언어독립`
-- 관련 노트: [[design-pattern-notes]] #3 Service Locator (pull 방향 대안), #5 Service Layer (Service를 주입받는 대표 패턴), #21 Domain-Scoped Injection Interface
+- 관련 노트: [[design-pattern-notes]] #3 Service Locator (pull 방향 대안), #5 Service Layer (Service를 주입받는 대표 패턴), #21 Domain-Scoped Injection Interface, [[csharp-syntax-notes]] #74~76 생성자/this()/base() (생성자 주입의 언어 기반)
 - 태그: `#아키텍처` `#서비스` `#결합도감소` `#테스트용이`
 
 ---

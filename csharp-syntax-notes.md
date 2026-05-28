@@ -129,6 +129,19 @@
 | 64 | `async` / `await` | 비동기 메서드 (`#C#5`) | Unity에선 코루틴 대신 선택 사용 |
 | 65 | `Task` / `Task<T>` | 비동기 작업 표현 | `async Task<int> Fetch()` |
 
+## 생성자 / 파괴자
+
+| # | 키워드 | 한 줄 설명 | 예시 |
+|---|---|---|---|
+| 74 | 인스턴스 생성자 | 인스턴스 생성 시 호출. 오버로딩 가능 | `public Foo(int x) { _x = x; }` |
+| 75 | `this(...)` 생성자 위임 | 같은 클래스의 다른 생성자에 체이닝 | `public Foo() : this(0) {}` |
+| 76 | `base(...)` 부모 생성자 호출 | 자식 생성자에서 부모 생성자 명시 호출 | `public Bar(int x) : base(x) {}` |
+| 77 | `static` 생성자 | 클래스 최초 접근 시 1회, 파라미터 없음 | `static Foo() { _cache = Build(); }` |
+| 78 | Primary constructor (`#C#12`) | 클래스 선언부에 파라미터 직접 명시 | `class Foo(int x) { int _x = x; }` |
+| 79 | Finalizer (`~Foo()`) | GC 수거 전 호출. 비결정론적, 비관리 리소스 전용 | `~Foo() { _handle.Free(); }` |
+| 80 | `IDisposable` / `Dispose()` | 명시적 결정론적 리소스 해제 패턴 | `void Dispose() { _stream.Dispose(); }` |
+| 81 | `using` 구문 | 스코프 끝에 `Dispose()` 자동 호출 | `using var r = new Resource();` |
+
 ## LINQ / 컬렉션
 
 | # | 키워드 | 한 줄 설명 | 예시 |
@@ -1008,6 +1021,170 @@ bool allDead = enemies.All(e => !e.IsAlive);
 | `.FirstOrDefault()` | default (null/0) | 첫 번째 반환 |
 | `.Single()` | 예외 | 예외 |
 | `.SingleOrDefault()` | default | 예외 |
+
+---
+
+## 생성자 / 파괴자
+
+### 74~78. 생성자 (Constructor)
+
+**기능**: 인스턴스 생성 시 초기 상태를 설정한다. C#은 생성자 오버로딩, 체이닝, static 생성자를 지원한다.
+
+**핵심 개념**: 생성자는 "이 객체를 올바른 상태로 만드는 진입점". 여러 오버로드가 있을 때 `this(...)`로 중복을 제거하고, 상속 계층에서는 `base(...)`로 부모를 초기화한다.
+
+**인스턴스 생성자 + 체이닝**:
+```csharp
+class Weapon {
+    private readonly string _name;
+    private readonly int    _atk;
+    private readonly float  _speed;
+
+    // 주 생성자 — 모든 필드 초기화
+    public Weapon(string name, int atk, float speed) {
+        _name  = name;
+        _atk   = atk;
+        _speed = speed;
+    }
+
+    // this(...)로 주 생성자에 위임 — 기본값 제공
+    public Weapon(string name, int atk) : this(name, atk, 1.0f) { }
+    public Weapon(string name)          : this(name, 0)          { }
+}
+```
+
+**base(...) — 부모 생성자 호출**:
+```csharp
+class Animal {
+    protected string Name;
+    public Animal(string name) { Name = name; }
+}
+
+class Dog : Animal {
+    private string _breed;
+    public Dog(string name, string breed) : base(name) {   // 부모 생성자 먼저 실행
+        _breed = breed;
+    }
+}
+```
+
+자식 생성자에서 `base(...)`를 명시하지 않으면 **부모의 기본 생성자(파라미터 없는 것)** 가 자동 호출됨. 부모에 기본 생성자가 없으면 컴파일 에러.
+
+**호출 순서**: `base(...)` → 부모 필드 초기화 → 부모 생성자 본문 → 자식 필드 초기화 → 자식 생성자 본문.
+
+**static 생성자**:
+```csharp
+class Config {
+    public static readonly Dictionary<string, int> Table;
+
+    static Config() {             // 파라미터 없음, 접근자 없음
+        Table = BuildTable();     // 클래스 최초 접근 시 1회만 실행
+    }
+
+    private static Dictionary<string, int> BuildTable() { ... }
+}
+```
+
+**Primary constructor (C# 12)**:
+```csharp
+// 선언부에 파라미터 → 클래스 전체 스코프에서 사용 가능
+class Weapon(string name, int atk) {
+    public string Name => name;
+    public int    Atk  => atk;
+    public string Display() => $"{name} (atk={atk})";
+}
+```
+
+record는 C# 9부터 이미 동일 문법. class/struct로 확장된 것이 C# 12.
+
+**함정**:
+- **MonoBehaviour에서 생성자 금지** — Unity는 오브젝트를 자체 방식으로 생성하므로 `new MyComponent()`를 직접 호출하면 경고/오동작. 초기화는 `Awake()`에서
+- **`this(...)` 체이닝 실행 순서** — `: this(...)` 호출이 현재 생성자 본문보다 *먼저* 실행됨. 본문에서 `this(...)` 결과를 기대하는 로직이 있으면 순서에 유의
+- **static 생성자 예외** — static 생성자에서 예외가 발생하면 `TypeInitializationException`으로 래핑되어 해당 타입이 AppDomain에서 영구적으로 사용 불가. try/catch로 예외 흡수 권장
+- **Primary constructor 파라미터 캡처** — primary constructor 파라미터는 숨겨진 필드로 캡처됨. `public string Name => name;`처럼 프로퍼티에서 참조하면 필드가 살아있지만, 사용하지 않으면 JIT이 제거할 수 있음. 의도적으로 저장이 필요하면 `private readonly string _name = name;` 명시
+
+**대표 용도 요약**:
+- `this(...)`: 오버로드 생성자의 기본값 제공, 중복 초기화 코드 제거
+- `base(...)`: 부모 필수 초기화 전달 (이름, ID, 의존성 등)
+- `static` 생성자: 클래스 수준 캐시/테이블 빌드, 1회 초기화 보장
+- Primary constructor: 단순 DI 컨테이너, record-style 불변 데이터 클래스
+
+> **생성자 주입 패턴** — 생성자를 이용해 의존성을 명시적으로 받는 DI 패턴. Unity 제약(MonoBehaviour new() 불가)과 대안 포함 → [[design-pattern-notes]] #20 DI
+
+---
+
+### 79~81. 파괴자 (Finalizer + IDisposable + using)
+
+**기능**: 객체가 소멸될 때 리소스를 해제한다. C#에는 두 가지 해제 메커니즘이 있다.
+
+**핵심 개념**: Finalizer와 Dispose의 차이가 핵심.
+- **Finalizer (`~Foo()`)**: GC가 결정하는 *비결정론적* 해제. 타이밍 보장 없음. 비관리 리소스(네이티브 핸들 등) 전용
+- **`IDisposable.Dispose()`**: 호출자가 결정하는 *결정론적* 해제. `using`으로 스코프 끝에 자동 호출. 파일/소켓/DB연결 등
+
+```csharp
+// Finalizer 단독 — 드물게 사용, 비관리 리소스만
+class NativeHandle {
+    private IntPtr _handle;
+    public NativeHandle() { _handle = AllocNative(); }
+    ~NativeHandle() { FreeNative(_handle); }   // GC가 언젠가 호출 (타이밍 불명)
+}
+
+// IDisposable 단독 — 관리 리소스 해제 (가장 흔한 패턴)
+class FileReader : IDisposable {
+    private StreamReader _reader;
+    public FileReader(string path) { _reader = new StreamReader(path); }
+    public void Dispose() { _reader?.Dispose(); }
+}
+
+// 표준 Dispose 패턴 — 관리 + 비관리 리소스 모두 처리
+class ResourceManager : IDisposable {
+    private bool _disposed;
+    private IntPtr _nativeHandle;       // 비관리
+    private StreamReader _reader;       // 관리
+
+    protected virtual void Dispose(bool disposing) {
+        if (_disposed) return;
+        if (disposing) {
+            _reader?.Dispose();         // 관리 리소스 — Dispose()에서만 해제
+        }
+        FreeNative(_nativeHandle);      // 비관리 — 항상 해제
+        _disposed = true;
+    }
+
+    public void Dispose() {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);      // Finalizer 억제 — 이미 정리했으므로
+    }
+
+    ~ResourceManager() {
+        Dispose(disposing: false);      // Finalizer 경로 — 관리 리소스는 이미 수거됨
+    }
+}
+```
+
+**using 구문 두 가지**:
+```csharp
+// using 블록 — 블록 끝에 Dispose() 호출
+using (var reader = new StreamReader("file.txt")) {
+    var content = reader.ReadToEnd();
+}   // ← 여기서 Dispose() 자동 호출 (예외 발생해도)
+
+// using 선언 (C# 8+) — 변수 스코프 끝에 Dispose() 호출
+using var reader = new StreamReader("file.txt");
+var content = reader.ReadToEnd();
+// 메서드 끝 또는 중괄호 스코프 끝에서 Dispose() 자동 호출
+```
+
+**함정**:
+- **Finalizer는 마지막 안전망** — 사용자가 `Dispose()`를 잊었을 때의 보험. 정상 흐름은 `using`/`Dispose()` 호출이어야 함. Finalizer에만 의존하면 해제 타이밍 불명 + GC 부하 증가
+- **`Dispose()` 중복 호출 방어** — `if (_disposed) return;` 가드 필수. `using` 블록이 중첩되거나 예외 핸들러에서 이중 호출 가능
+- **`GC.SuppressFinalize(this)` 필수** — `Dispose()`에서 이미 정리했으면 Finalizer가 다시 정리하지 않도록 억제. 빠뜨리면 GC가 Finalizer도 실행해 이중 해제 가능 (비관리 핸들 이중 해제 = crash)
+- **Unity에서 Finalizer 사용 제한** — Unity의 Native Object(Texture, AudioClip, AOC 등)는 GC가 아닌 Unity 엔진이 소유. Finalizer에서 `Destroy(nativeObj)` 호출 시 이미 파괴된 객체 접근 위험. 대신 `OnDisable`/`OnDestroy`에서 명시 `Destroy()` 호출
+- **`using` 선언은 스코프 주의** — C# 8+ `using var`는 변수가 선언된 *블록의 끝*에 해제. 블록이 없으면 메서드 끝. 의도한 해제 시점이 중간이라면 `using (...)` 명시 블록 사용
+
+**대표 용도**:
+- Finalizer: Unity `AnimatorOverrideController` 같은 Native Object 누수 방지 안전망 (본 역할은 `OnDisable`의 `Destroy()`)
+- `IDisposable` + `using`: 파일/소켓/DB 연결, 임시 리소스 스코프 해제, `CancellationTokenSource`
+- `using` 선언: 메서드 내 짧은 스코프 리소스 (C# 8+, Unity 2021+ 지원)
 
 ---
 
