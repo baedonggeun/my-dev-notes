@@ -181,6 +181,10 @@ internal class DebugHelper { }          // 같은 프로젝트 내부용
 
 **기능**: 메서드가 다형성에 참여하는 방식을 제어한다.
 
+**핵심 개념 먼저**: 부모 타입 변수로 자식 인스턴스를 담았을 때 어떤 버전이 호출되는가.
+- `virtual` + `override` → **런타임**에 실제 인스턴스 타입 기준으로 호출 (다형성)
+- `new` (숨기기) → **컴파일 타임**에 변수 타입 기준으로 호출 (다형성 차단)
+
 **비교**:
 | 부모 선언 | 자식 override 가능? | 자식 override 의무? | 부모 구현 있음? |
 |---|---|---|---|
@@ -188,24 +192,88 @@ internal class DebugHelper { }          // 같은 프로젝트 내부용
 | `abstract` | O | O | X |
 | 일반 메서드 | X (`new`로 숨기기만 가능) | — | O |
 
-**override vs new 핵심 차이**:
+**override vs new — 정의부터 호출까지**:
 ```csharp
-Base b = new Child();
-b.Foo();  // virtual + override → Child.Foo() 호출 (다형성 작동)
-b.Bar();  // new (숨기기) → Base.Bar() 호출 (다형성 작동 안 함)
+class Base {
+    public virtual void Foo() => Console.WriteLine("Base.Foo");
+    public         void Bar() => Console.WriteLine("Base.Bar");
+}
+
+class Child : Base {
+    public override void Foo() => Console.WriteLine("Child.Foo"); // 다형성 연결
+    public new      void Bar() => Console.WriteLine("Child.Bar"); // 숨기기 (hiding)
+}
+
+Base  b = new Child();  // 변수 타입 = Base, 실제 인스턴스 = Child
+b.Foo();  // → Child.Foo  (런타임: 실제 타입 Child를 본다)
+b.Bar();  // → Base.Bar   (컴파일 타임: 변수 타입 Base만 본다)
+
+Child c = new Child();  // 변수 타입 = Child
+c.Foo();  // → Child.Foo
+c.Bar();  // → Child.Bar  (변수가 Child면 Child 버전)
 ```
-`new`는 부모 타입 변수로 참조 시 부모 버전이 호출된다. 실수로 `override` 대신 쓰면 다형성이 작동하지 않아 버그 원인이 됨.
+
+`new`의 함정: 자식 타입 변수(`Child c`)로 직접 쓸 때는 자식 버전이 호출되어 의도대로 보인다. 그러나 `List<Base>`에 담거나 메서드 파라미터로 `Base`를 받는 순간 부모 버전이 호출되어 조용히 버그가 된다. `override` 키워드가 빠졌을 때 컴파일러가 "use `new` to suppress" 경고를 내는 이유 — 실수로 `new`를 붙이면 다형성이 의도치 않게 끊긴다.
+
+**base 호출 — override하면서 부모 버전도 실행**:
+```csharp
+class Child : Base {
+    public override void Foo() {
+        base.Foo();   // 부모 버전 먼저 실행
+        // 추가 처리
+    }
+}
+```
+`new`로 숨긴 메서드도 `base.Bar()`로 부모 버전 호출은 가능하지만, 숨기기가 목적인데 명시 호출하는 경우는 거의 없다.
+
+**abstract 사용 규칙**:
+- `abstract` 메서드가 1개라도 있으면 클래스도 반드시 `abstract class`
+- `abstract class`는 인스턴스화 불가 (`new AbstractBase()` 컴파일 에러)
+- 자식이 `abstract` 멤버를 모두 `override`하지 않으면 자식도 `abstract`가 됨
+
+```csharp
+abstract class State {
+    public abstract void Enter();      // 구현 없음, 자식 override 의무
+    public abstract void Exit();
+    public virtual  void Update() {}   // 기본 구현 있음, 자식은 선택
+}
+
+class IdleState : State {
+    public override void Enter() { /* ... */ }  // 필수
+    public override void Exit()  { /* ... */ }  // 필수
+    // Update는 override 안 해도 됨
+}
+```
+
+**abstract class vs interface 선택 기준**:
+| | `abstract class` | `interface` |
+|---|---|---|
+| 구현 포함 | O | O (default 구현, C# 8+) |
+| 상태(필드) 보유 | O | X |
+| 다중 상속 | X (단일) | O (다중 구현 가능) |
+| 생성자 | O | X |
+| 언제 쓰나 | 공통 상태 + 공통 구현이 있는 계층 | 타입과 무관한 능력(행동) 계약 |
+
+규칙: "is-a" 관계면 `abstract class`, "can-do" 관계면 `interface`.
+예: `MonoBehaviour`를 상속하는 State 계층은 abstract class. `IDamageable`은 interface.
 
 **sealed 두 위치**:
 ```csharp
-sealed class FinalState { }              // 이 클래스 상속 불가
-sealed override void Enter() { }         // 이 override 이후 추가 재정의 불가
-```
+sealed class FinalState { }          // 이 클래스 자체를 상속 불가
+class GrandChild : FinalState { }    // 컴파일 에러
 
-**대표 용도**:
-- `abstract class`: 템플릿 메서드 패턴 — 공통 알고리즘 골격 제공, 세부 구현은 자식
+class Child : Base {
+    sealed override void Enter() { } // Child는 override했지만 Child의 자식은 재정의 불가
+}
+```
+`sealed class`는 의도 명시(확장 불필요) + JIT이 vtable 조회 없이 직접 호출로 최적화(devirtualization).
+
+**대표 용도 요약**:
+- `abstract class`: 템플릿 메서드 패턴 — 공통 골격 + 세부 구현은 자식 의무
 - `virtual`: 기본 동작 제공하되 자식이 커스터마이징할 훅 포인트
-- `sealed class`: 의도 명시(이 클래스는 확장 불필요) + JIT devirtualization 최적화
+- `override`: virtual/abstract에 연결 — 다형성 참여 선언
+- `new`: 의도적 숨기기(hiding) — 다형성을 끊는 게 목적일 때만 명시 사용
+- `sealed class` / `sealed override`: 확장 차단 의도 명시 + JIT 최적화
 
 ---
 
