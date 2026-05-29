@@ -53,8 +53,7 @@
 
 ## 1. 비대칭 점프 (Asymmetric Jump)
 
-**한 줄 요약**
-상승과 하강에 서로 다른 중력을 적용해 떨어질 때 더 빠르게 낙하시키는 점프 곡선. 묵직한 무게감 + 빠른 응답성.
+_상승과 하강에 서로 다른 중력을 적용해 떨어질 때 더 빠르게 낙하시키는 점프 곡선. 묵직한 무게감 + 빠른 응답성._
 
 **설명**
 순수 포물선(상승 시간 = 하강 시간)은 물리적으로는 맞지만 체감상 "둥둥 뜨는" 느낌을 준다. 하강 중력을 상승의 1.5~2.5배로 키우면 게임필이 즉시 개선됨.
@@ -93,23 +92,18 @@ if jumpPressed and coyoteTimer > 0:
 - `lowJumpMultiplier`: 2.0
 - `coyoteDuration` / `jumpBufferDuration`: 0.1~0.15s
 
-**주의점**
+⚠ **주의점**
 - 물리 엔진과 충돌 가능 — `velocity` 직접 조작 대신 `Rigidbody.gravityScale` 동적 변경이 더 안전 (Unity)
 - `fallMultiplier`가 너무 크면 공중 제어 시간이 짧아져 플랫폼 안착 어려움 — 레벨 디자인과 함께 튜닝
 - Coyote/Buffer 타이머를 디버그 UI로 노출하면 튜닝 속도 ↑
 
-**메타**
-- 종속성: `#게임엔진일반` (개념 독립, 구현은 물리/시간 시스템 필요)
-- 관련 노트: [[game-design-notes]] #1 (관용성 디자인 원리)
-- 첫 도출: CasualStrategy (2026-05-15)
-- 태그: `#점프` `#2D` `#플랫포머` `#게임필` `#응답성`
 
----
+`#점프` `#2D` `#플랫포머` `#게임필` `#응답성`
+> 관련: [[game-design-notes]] #1 (관용성 디자인 원리) | 종속성: `#게임엔진일반` (개념 독립, 구현은 물리/시간 시스템 필요)
 
 ## 2. 가챠 Pity 시스템 (Pity 등급 시프트 + Fallback)
 
-**한 줄 요약**
-누적 실패 횟수에 따라 고등급 확률을 점진 상승시키고(소프트 pity), 천장 도달 시 강제 지급(하드 pity). Rate-up 실패 시 fallback counter 별도 누적.
+_누적 실패 횟수에 따라 고등급 확률을 점진 상승시키고(소프트 pity), 천장 도달 시 강제 지급(하드 pity). Rate-up 실패 시 fallback counter 별도 누적._
 
 **설명**
 가챠의 핵심 불만은 *분산* — 운 나쁜 사용자는 기댓값의 10배를 써야 할 수 있다. Pity는 이 분산의 상한을 제어해 "최악의 경우"를 보장.
@@ -181,25 +175,20 @@ public class GachaService
 | 원신 5성 | 0.6% | 74 | 90 |
 | 일반 SSR | 1~3% | 60~80% ceiling | 100~200 |
 
-**주의점**
+⚠ **주의점**
 - **pity_counter 리셋 타이밍** — 고등급 지급 *직후* 리셋. 결과 처리 전 리셋 로직에 오류 시 다음 시도도 pity 오염
 - **guarantee_counter와 pity_counter 독립** — 같은 변수 공유 시 픽업 fallback이 pity 카운터를 초기화하는 설계 혼선 발생
 - **영속 저장 필수** — 두 카운터 모두 앱 재시작 후에도 유지. PlayerPrefs 또는 서버. 클라이언트만 보관 시 치트 위험
 - **Monte Carlo 검증** — 파라미터 조정 전 10만 회 시뮬레이션으로 평균 소요 횟수, 90th percentile, 천장 도달 빈도 측정 필수
 - **소프트 pity 투명성** — 공개하면 사용자가 "74회부터 올라간다"는 기대를 품어 이탈 방지. 일부 게임은 비공개로 운영 (커뮤니티가 역산으로 발견)
 
-**메타**
-- 종속성: `#언어독립`
-- 관련 노트: [[math-algorithm-notes]] #5 가중 랜덤, #6 Pity 누적 시프트 (수학 기반)
-- 첫 도출: CasualStrategy (2026-05-15)
-- 태그: `#가챠` `#확률` `#밸런싱` `#게임필`
 
----
+`#가챠` `#확률` `#밸런싱` `#게임필`
+> 관련: [[math-algorithm-notes]] #5 가중 랜덤, #6 Pity 누적 시프트 (수학 기반) | 종속성: `#언어독립`
 
 ## 3. Power-Law 강화 곡선 (Power-Law Enhancement Curve)
 
-**한 줄 요약**
-강화 단계 `x ∈ [0, max]`를 멱함수 `f(x) = (x/max)^n`으로 정규화. 지수 `n`으로 후반 보상 곡선 형태 제어. `n > 1`: 후반 가파름, `n < 1`: 초반 가파름.
+_강화 단계 `x ∈ [0, max]`를 멱함수 `f(x) = (x/max)^n`으로 정규화. 지수 `n`으로 후반 보상 곡선 형태 제어. `n > 1`: 후반 가파름, `n < 1`: 초반 가파름._
 
 **설명**
 선형 스케일링(n=1)은 각 강화 단계가 동일한 보상을 준다 — 드라마틱하지 않고 단조롭다. 멱함수는 `n` 하나로 곡선 형태를 조절.
@@ -241,24 +230,19 @@ float stat = Mathf.Lerp(baseStat, maxStat, enhanceCurve.Evaluate(t));
 
 AnimationCurve는 `n` 수식 없이 조정 가능하나 코드에서 공식 추적이 어려움. 멱함수 수식 + `n`만 인스펙터 노출이 타협점.
 
-**주의점**
+⚠ **주의점**
 - **step == 0에서 pow(0, n) = 0** — `Lerp(base, max, 0) = base`가 정확. 특수 처리 불필요
 - **n 값 선택** — n=2(Quad)가 가장 자연스러운 가파름 시작점. n=1.5는 선형과 Quad의 중간. 시뮬레이션으로 검증 권장
 - **maxStep == 0 나누기** — `step / maxStep`에서 maxStep=0이면 Divide by Zero. 가드 필수
 - **비용 곡선과 성능 곡선 분리 설계** — 비용 n>1 + 성능 n<1 조합 시 "비용은 올라가는데 성능 체감은 줄어드는" 수익체감 구조 성립
 
-**메타**
-- 종속성: `#언어독립`
-- 관련 노트: [[math-algorithm-notes]] #4 멱함수 곡선 (수학 빌딩블록), [[unity-feature-notes]] #35 AnimationCurve (Unity 대안)
-- 첫 도출: CasualStrategy (2026-05-15) — 무기 강화 스탯 스케일링
-- 태그: `#밸런싱` `#곡선` `#게임필`
 
----
+`#밸런싱` `#곡선` `#게임필`
+> 관련: [[math-algorithm-notes]] #4 멱함수 곡선 (수학 빌딩블록), [[unity-feature-notes]] #35 AnimationCurve (Unity 대안) | 종속성: `#언어독립`
 
 ## 6. AudioMixer Linear→dB 지각 변환 (볼륨 슬라이더)
 
-**한 줄 요약**
-UI 슬라이더의 선형 값(0~1)을 `dB = 20·log₁₀(linear)` 변환 후 `AudioMixer.SetFloat`에 전달. 슬라이더 50% = 약 -6dB ≈ 인간 귀에 "반쯤 줄었다"는 느낌.
+_UI 슬라이더의 선형 값(0~1)을 `dB = 20·log₁₀(linear)` 변환 후 `AudioMixer.SetFloat`에 전달. 슬라이더 50% = 약 -6dB ≈ 인간 귀에 "반쯤 줄었다"는 느낌._
 
 **설명**
 `AudioMixer.SetFloat("Volume", linearValue)`에 선형 값(0~1)을 그대로 전달하면 볼륨 조절이 부자연스럽다 — 슬라이더 90%에서 10%까지는 차이가 적게 느껴지다가 마지막 10%에서 급격히 줄어드는 느낌. 인간 청각이 로그 특성이기 때문.
@@ -298,27 +282,20 @@ AudioMixer 셋업:
 2. 각 그룹 Volume 파라미터 Expose: Inspector 우클릭 → "Expose to script" → 이름 지정
 3. `audioMixer.SetFloat(exposedName, dbValue)` 호출
 
-**주의점**
+⚠ **주의점**
 - **`Mathf.Log10(0)` = -Infinity** — `linear <= 0f ? MIN_DB : Mathf.Log10(linear) * 20f` 가드 필수. 가드 없으면 AudioMixer 파라미터가 locked 상태가 되어 이후 SetFloat 무시됨 (볼륨 0 → 복구 불가 버그)
 - **-80dB가 관행** — AudioMixer Inspector 기본 최솟값. -144dB 등 극단값 전달 시 일부 Unity 버전에서 오동작
 - **Exposed Parameter 이름 오타** — `SetFloat("MaterVolume", db)` 같은 오타는 silent fail (false 반환, 예외 없음). const 문자열 상수 관리 권장
 - **PlayerPrefs 저장 단위** — 선형(0~1)으로 저장, 로드 시 dB 변환. dB 저장 후 역변환은 -∞ 처리가 복잡
 - **GetFloat로 UI 동기화** — 초기화 시 `GetFloat → DBToLinear → slider.value`. `DBToLinear: Mathf.Pow(10f, db / 20f)`
 
-**메타**
-- 종속성: `#Unity전용` (AudioMixer API), 수학 개념은 `#언어독립`
-- 관련 노트: [[math-algorithm-notes]] #2 Linear↔dB 로그 변환 (수학 기반), [[unity-feature-notes]] #14 AudioMixer, #27 Mathf.Log10
-- 첫 도출: CasualStrategy (2026-05-15) — SoundManager 볼륨 제어
-- 태그: `#오디오` `#밸런싱` `#게임필`
 
----
-
----
+`#오디오` `#밸런싱` `#게임필`
+> 관련: [[math-algorithm-notes]] #2 Linear↔dB 로그 변환 (수학 기반), [[unity-feature-notes]] #14 AudioMixer, #27 Mathf.Log10 | 종속성: `#Unity전용` (AudioMixer API), 수학 개념은 `#언어독립`
 
 ## 10. Hold-to-Repeat 버튼 (길게 누르기 반복 입력)
 
-**한 줄 요약**
-버튼을 누르고 있으면 초기 딜레이 후 일정 간격으로 클릭 이벤트가 반복 발동되는 입력 패턴.
+_버튼을 누르고 있으면 초기 딜레이 후 일정 간격으로 클릭 이벤트가 반복 발동되는 입력 패턴._
 
 **설명**
 키보드/게임패드의 "키 반복(key repeat)"과 동일한 원리를 UI 버튼에 적용. 수량 조정 버튼(+/-), 가챠 연속 구매, 슬라이더 미세 조정 등 "여러 번 클릭이 필요한 동작"에서 표준 UX.
@@ -357,24 +334,20 @@ function RepeatLoop():
         yield WaitForSecondsRealtime(repeatInterval)
 ```
 
-**주의점**
+⚠ **주의점**
 - **PointerExit 처리 필수** — 누른 채로 버튼 밖으로 드래그하면 OnPointerUp이 발동 안 됨. 드래그 이탈 시점에 명시적으로 정지
 - **OnDisable 안전망** — 패널 닫힘/씬 전환 시 코루틴이 살아있으면 NRE 가능
 - **Realtime vs scaled** — 일시정지 메뉴에서도 동작해야 하면 `WaitForSecondsRealtime` 사용. 게임 속도에 종속이면 `WaitForSeconds`
 - **터치 vs 마우스** — 모바일에서 손가락이 살짝 움직이면 OnPointerExit 발동 가능. 허용 임계값 두거나 `EventSystem.pixelDragThreshold` 조정
 - **interactable=false 동안 발동 방지** — 매 루프에서 검사. 도중에 버튼이 비활성화되면 즉시 정지
 
-**메타**
-- 종속성: `#게임엔진일반` (PointerEvent 인터페이스가 있는 UI 시스템 필요)
-- 첫 도출: CasualStrategy (2026-05-15)
-- 태그: `#입력` `#UI` `#응답성` `#관용성` `#코루틴`
 
----
+`#입력` `#UI` `#응답성` `#관용성` `#코루틴`
+> 종속성: `#게임엔진일반` (PointerEvent 인터페이스가 있는 UI 시스템 필요)
 
 ## 11. Parallax Scrolling (시차 스크롤)
 
-**한 줄 요약**
-카메라 이동량에 레이어별 `parallaxFactor ∈ [0, 1]`를 곱해 배경 레이어를 이동. 멀수록 느리게 → 시각적 원근감 생성.
+_카메라 이동량에 레이어별 `parallaxFactor ∈ [0, 1]`를 곱해 배경 레이어를 이동. 멀수록 느리게 → 시각적 원근감 생성._
 
 **설명**
 2D 게임에서 원근감을 표현하는 고전 기법. 실세계에서 멀리 있는 물체는 이동 중에 느리게 지나가는 것과 동일 원리. 뇌는 속도 차이를 깊이로 해석.
@@ -444,16 +417,13 @@ if (Mathf.Abs(_cam.position.x - transform.position.x) >= textureUnitWidth)
 }
 ```
 
-**주의점**
+⚠ **주의점**
 - **LateUpdate 사용** — 카메라가 Update에서 이동한다면 동일 프레임 Update에서 레이어를 이동시키면 1프레임 lag. `LateUpdate`에서 카메라 위치 참조가 정확
 - **방법 A vs B** — 방법 A(절대 위치 기반)는 누적 오차 없음. 방법 B(델타)는 카메라가 순간이동해도 자연스럽게 동작. 통상 방법 A 권장
 - **카메라 방향과 레이어 이동 방향** — 카메라 오른쪽 이동 시 배경은 왼쪽으로 보여야 함(실세계). 위 공식 `startX + cameraPos * factor`는 카메라 방향과 같은 방향으로 레이어가 이동하므로 배경이 카메라보다 느리게 스크롤 — 의도한 시차 효과 달성
 - **Y축 parallax** — 수직 스크롤 게임에서 Y factor를 추가. 통상 `Y_factor = X_factor / 2~3`으로 약하게
 - **z값 처리 (2D)** — Unity 2D에서는 SortingOrder로 렌더 순서 제어. z값을 깊이로 쓰는 방식도 가능하나 orthographic 카메라에서는 시차 없음
 
-**메타**
-- 종속성: `#게임엔진일반`
-- 첫 도출: CasualStrategy (2026-05-28)
-- 태그: `#2D` `#카메라` `#게임필` `#이동`
 
----
+`#2D` `#카메라` `#게임필` `#이동`
+> 종속성: `#게임엔진일반`

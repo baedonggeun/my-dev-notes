@@ -59,8 +59,7 @@
 
 ## 1. 선형 보간 (Lerp)
 
-**한 줄 요약**
-두 값 사이를 비율 `t∈[0,1]`로 섞는 가장 기본적인 보간. `Lerp(a, b, t) = a + (b - a) * t`
+_두 값 사이를 비율 `t∈[0,1]`로 섞는 가장 기본적인 보간. `Lerp(a, b, t) = a + (b - a) * t`_
 
 **설명**
 선형 보간은 두 값 `a`, `b` 사이의 중간값을 비율 `t`로 결정한다. `t=0`이면 `a`, `t=1`이면 `b`, `t=0.5`면 정확히 중간. 단순해 보이지만 게임에서 압도적으로 자주 쓰이는 빌딩블록.
@@ -92,22 +91,18 @@ function FrameRateIndependentLerp(current, target, rate, dt):
 - Unreal: `FMath::Lerp`
 - 셰이더: `mix(a, b, t)` (GLSL), `lerp(a, b, t)` (HLSL)
 
-**주의점**
+⚠ **주의점**
 - **프레임률 의존성**: `Lerp(a, b, 0.1)`을 매 프레임 호출하면 60fps와 30fps에서 결과가 다르다. 정확하려면 `t = 1 - pow(1 - rate, dt)` 또는 SmoothDamp 같은 함수 사용
 - **각도 보간 함정**: 두 각도(0°와 350°) 사이 Lerp는 큰 쪽으로 돌아간다. 짧은 방향 보간이 필요하면 `LerpAngle` 또는 `Slerp` 사용
 - **clamped vs unclamped**: `t > 1` 또는 `t < 0`이 의도된 외삽인지 확인. 빌트인은 자동 clamp하는 경우가 많아 외삽 의도 시 명시적 함수(`LerpUnclamped` 등) 필요
 
-**메타**
-- 종속성: `#언어독립` `#엔진독립`
-- 첫 도출: CasualStrategy (2026-05-15)
-- 태그: `#보간` `#O(1)` `#결정론` `#수치매핑` `#게임필`
 
----
+`#보간` `#O(1)` `#결정론` `#수치매핑` `#게임필`
+> 종속성: `#언어독립` `#엔진독립`
 
 ## 2. Linear↔dB 로그 변환 (20·log₁₀)
 
-**한 줄 요약**
-인간 청각의 로그 특성을 선형 슬라이더 값(0~1)에 매핑하는 변환. `dB = 20 · log₁₀(linear)`, 역변환 `linear = 10^(dB/20)`.
+_인간 청각의 로그 특성을 선형 슬라이더 값(0~1)에 매핑하는 변환. `dB = 20 · log₁₀(linear)`, 역변환 `linear = 10^(dB/20)`._
 
 **설명**
 소리의 진폭(amplitude)과 인간이 *지각하는* 크기는 선형 비례가 아니라 로그 비례다. 슬라이더를 0.5(50%)로 놓으면 "반쯤 들린다"가 아니라 "약간 줄었다"는 느낌이 난다 — 이를 보정하는 것이 dB 변환.
@@ -142,25 +137,20 @@ AudioMixer.SetFloat("MasterVolume", LinearToDB(sliderValue))
 - Unity: `Mathf.Log10(v) * 20f` (log10 직접), `AudioMixer.SetFloat(param, db)` 범위는 통상 -80~0
 - Unity AudioMixer Exposed Parameter는 *dB 단위*로 받음 — 선형 값 직접 주면 잘못된 결과
 
-**주의점**
+⚠ **주의점**
 - **log10(0) = -∞ 처리 필수** — `if (linear <= 0) return -80f;` 없으면 NaN/Infinity가 AudioMixer에 전달됨. Unity는 이 경우 파라미터가 locked 상태가 되어 이후 SetFloat도 무시되는 버그 발생
 - **바닥값 -80dB 관행** — AudioMixer의 기본 최솟값. `-80dB ≈ 1/10000 진폭`이므로 실용적 무음. -144dB 등 극단값 전달 시 일부 Unity 버전에서 오동작
 - **`Mathf.Log10` vs `Mathf.Log` 혼동** — `Mathf.Log(v)` = 자연로그(ln). dB 계산에는 `Mathf.Log10(v)` 필수
 - **역변환 필요 시** — 현재 dB를 읽어 UI를 업데이트할 때 `AudioMixer.GetFloat` + `DBToLinear`로 슬라이더 복원 필요
 - **PlayerPrefs 저장** — 볼륨을 저장할 때 *선형*(0~1)으로 저장하고 로드 시 dB 변환 권장. dB 저장 후 역변환 시 -∞ 처리가 복잡해짐
 
-**메타**
-- 종속성: `#언어독립` (수학), 적용은 `#오디오엔진`
-- 관련 노트: [[game-technique-notes]] #6 AudioMixer Linear→dB (Unity 적용), [[unity-feature-notes]] #14 AudioMixer, #27 Mathf.Log10
-- 첫 도출: CasualStrategy (2026-05-15) — SoundManager dB 볼륨 제어
-- 태그: `#변환` `#오디오` `#O(1)` `#결정론` `#밸런싱`
 
----
+`#변환` `#오디오` `#O(1)` `#결정론` `#밸런싱`
+> 관련: [[game-technique-notes]] #6 AudioMixer Linear→dB (Unity 적용), [[unity-feature-notes]] #14 AudioMixer, #27 Mathf.Log10 | 종속성: `#언어독립` (수학), 적용은 `#오디오엔진`
 
 ## 5. 가중 랜덤 (Weighted Random Sampling)
 
-**한 줄 요약**
-항목별 가중치에 비례한 확률로 하나를 선택. 총합 `R = Σw_i`, 균등 랜덤 `r ∈ [0, R)`, 누적합이 r을 처음 초과하는 항목 반환.
+_항목별 가중치에 비례한 확률로 하나를 선택. 총합 `R = Σw_i`, 균등 랜덤 `r ∈ [0, R)`, 누적합이 r을 처음 초과하는 항목 반환._
 
 **설명**
 균등 랜덤이 모든 항목을 동일 확률로 뽑는다면, 가중 랜덤은 가중치 비율만큼 뽑힌다. 드롭 테이블, 가챠 등급, 스폰 확률, BGM 선택 등 게임 핵심 확률 메커니즘.
@@ -222,25 +212,20 @@ function SampleAlias(probs, alias):
     return i if Random01() < probs[i] else alias[i]
 ```
 
-**주의점**
+⚠ **주의점**
 - **가중치 정규화 불필요** — total을 계산해 상대 비율로 샘플링하므로 `[1, 2, 3]`이나 `[0.167, 0.333, 0.5]`나 동일. 단, `total == 0` 가드 필수
 - **float 누적 오차** — 항목 수 많을수록 `cumulative += weights[i]` 정밀도 저하. 마지막 항목이 뽑히지 않는 버그로 나타남. 마지막 항목 안전망 `return items[^1]` 항상 추가
 - **`Random.value` 범위** — Unity `Random.value ∈ [0, 1]` (양 끝 포함). `r == total`인 경우를 위해 마지막 항목 fallback 필수
 - **O(N) vs O(1) 분기점** — 항목 수 < 100 + 호출 빈도 낮음 → 선형 탐색으로 충분. 항목 수 1000+ 또는 매 프레임 1000회+ 호출 → Alias Method. CasualStrategy 가챠는 항목 수 ~10이라 선형 탐색 적용
 - **가중치 동적 변경** — Alias Method는 가중치 변경 시 재전처리(O(N)) 필요. pity 누적처럼 매 호출마다 가중치가 달라지면 선형 탐색이 더 실용적
 
-**메타**
-- 종속성: `#언어독립`
-- 관련 노트: [[game-technique-notes]] #2 가챠 Pity 시스템 (응용), [[math-algorithm-notes]] #6 Pity 누적 시프트
-- 첫 도출: CasualStrategy (2026-05-15) — 가챠 등급 산출
-- 태그: `#확률` `#가챠` `#O(N)` `#확률적`
 
----
+`#확률` `#가챠` `#O(N)` `#확률적`
+> 관련: [[game-technique-notes]] #2 가챠 Pity 시스템 (응용), [[math-algorithm-notes]] #6 Pity 누적 시프트 | 종속성: `#언어독립`
 
 ## 6. Pity 누적 시프트 (Cumulative Probability Shift)
 
-**한 줄 요약**
-실패 누적 횟수 `n`에 따라 성공 확률을 점진 상승시키고, 임계점(`ceiling`)에서 100%로 보장. 소프트 pity + 하드 pity 2단 구조.
+_실패 누적 횟수 `n`에 따라 성공 확률을 점진 상승시키고, 임계점(`ceiling`)에서 100%로 보장. 소프트 pity + 하드 pity 2단 구조._
 
 **설명**
 순수 고정 확률 시스템은 "10000번 시도해도 안 나옴"이 수학적으로 가능해 사용자 이탈의 직접 원인. Pity는 이 분산을 제어하는 공식 메커니즘.
@@ -287,25 +272,20 @@ function CalcProbability(base, n, soft, incr, ceiling):
     return base
 ```
 
-**주의점**
+⚠ **주의점**
 - **pity 카운터 리셋 타이밍** — 성공 *직후* 리셋. 결과 처리 전 리셋 누락 시 다음 시도도 확률이 오염
 - **천장 도달 후 리셋** — `n >= ceiling` 강제 지급 후 `pityCount = 0` 필수. 누락 시 다음 시도도 확률 100%
 - **등급별 독립 카운터** — SR pity와 UR pity가 같은 카운터를 공유하면 SR 성공이 UR 카운터를 리셋하는 설계 오류. 각 pool마다 별도 카운터
 - **소프트 pity 시작점** — `soft_threshold`를 너무 낮게 잡으면 초반 확률이 급등해 기댓값이 낮아짐. 원신 74/90이 경험적 참조값
 - **영속 저장** — pity 카운터는 앱 재시작 후에도 유지 필수. PlayerPrefs 또는 서버 저장. 메모리에만 두면 재시작 시 리셋 (치트 가능)
 
-**메타**
-- 종속성: `#언어독립`
-- 관련 노트: [[game-technique-notes]] #2 Pity 등급 시프트 (게임 기법 레벨), [[math-algorithm-notes]] #5 가중 랜덤
-- 첫 도출: CasualStrategy (2026-05-15)
-- 태그: `#확률` `#가챠` `#O(1)` `#결정론`
 
----
+`#확률` `#가챠` `#O(1)` `#결정론`
+> 관련: [[game-technique-notes]] #2 Pity 등급 시프트 (게임 기법 레벨), [[math-algorithm-notes]] #5 가중 랜덤 | 종속성: `#언어독립`
 
 ## 9. Easing Functions (이징 함수)
 
-**한 줄 요약**
-선형 시간 `t ∈ [0, 1]`을 비선형으로 변환해 가속/감속 곡선 생성. `Lerp(a, b, ease(t))`로 모든 보간에 적용.
+_선형 시간 `t ∈ [0, 1]`을 비선형으로 변환해 가속/감속 곡선 생성. `Lerp(a, b, ease(t))`로 모든 보간에 적용._
 
 **설명**
 선형 이동(Linear)은 시각적으로 기계적으로 느껴진다. 물체가 자연스럽게 움직이려면 시작·끝에서 가속/감속이 필요. Easing Function은 `t → t'` 매핑으로 그 곡선을 만든다.
@@ -358,21 +338,16 @@ value = Lerp(from, to, EaseOutQuad(t))
 - DOTween: `Ease.OutQuad`, `Ease.InBack` 등 Penner 계열 내장
 - CSS: `cubic-bezier(x1,y1,x2,y2)` (다른 표현법이지만 동일 결과)
 
-**주의점**
+⚠ **주의점**
 - **Ease-In vs Ease-Out 혼동** — UI 팝업 *등장*은 Ease-Out (빠르게 나타나 자리 안착), *사라짐*은 Ease-In (천천히 당겼다 빠르게 나감). 반대로 하면 어색함
 - **`t` 범위 초과** — `elapsed > duration`이면 `t > 1`. Penner 함수는 t > 1 정의 밖. `Clamp01(t)` 필수
 - **Elastic/Back 오버슈팅** — `t ∈ [0,1]`이어도 출력이 [0,1] 범위 초과 (Back: -0.1~1.1). 색상/알파 등 경계가 의미있는 값에 주의
 - **AnimationCurve가 실용적** — Unity에서는 Penner 함수 직접 구현보다 `AnimationCurve` Inspector 편집이 더 유연하고 디자이너 조정 가능. 단, `Evaluate` 반복 호출 비용이 있으므로 대량 호출 시 측정 필요
 - **프레임률 독립성** — `t = elapsed/duration` 구조라 dt를 올바르게 누적하면 프레임률 독립. `Lerp(current, target, 0.1)` 매 프레임 방식([[math-algorithm-notes]] #1)과는 다른 개념
 
-**메타**
-- 종속성: `#언어독립` `#엔진독립` (개념). Unity `AnimationCurve`는 `#Unity전용`
-- 관련 노트: [[math-algorithm-notes]] #1 Lerp (이징의 백본), [[unity-feature-notes]] #35 AnimationCurve
-- 첫 도출: CasualStrategy (2026-05-28) — 두 번째 만남 확률 최고로 등재. 본 프로젝트는 AnimationCurve 일부 사용, DOTween 미사용
-- 태그: `#보간` `#게임필` `#UI` `#애니메이션`
 
----
-
+`#보간` `#게임필` `#UI` `#애니메이션`
+> 관련: [[math-algorithm-notes]] #1 Lerp (이징의 백본), [[unity-feature-notes]] #35 AnimationCurve | 종속성: `#언어독립` `#엔진독립` (개념). Unity `AnimationCurve`는 `#Unity전용`
 *#3, #4, #7, #8, #10~#16 풀노트는 작성 기준 충족 시 추가.*
 
 ---
