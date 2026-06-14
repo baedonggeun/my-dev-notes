@@ -46,6 +46,7 @@
 | 10 | 길게 누르기 반복 입력 | Hold-to-Repeat (Initial Delay + Interval) | 버튼을 길게 누르면 초기 딜레이 후 일정 간격으로 onClick 반복 발동 | `#게임엔진일반` |
 | 11 | 2D 배경 깊이감 | Parallax Scrolling (속도 차 레이어) | 카메라 이동량에 거리 반비례 계수를 곱해 배경 레이어를 이동시켜 원근감 생성 — 멀수록 적게 이동 | `#게임엔진일반` |
 | 12 | 순차 큐 + 즉시 우회 팝업 | Sequential Queue + Concurrent Bypass | 애니메이션 효과를 Queue로 순차 재생하되 동시 표시가 의도인 효과(힐/쉴드)는 별도 SpawnInstant 진입점으로 큐 우회 — 데이터 흐름에 WaitForSeconds 재추가 없이 시각 타이밍 분리 | `#게임엔진일반` |
+| 13 | 데미지 판정 | 주사위 합산값(summaryValue) 판정 | 슬롯 배치 주사위를 합산한 summaryValue를 diceMin/diceMax/criticalValue와 비교 — D20과 달리 플레이어 주사위 선택이 결과에 직결 | `#언어독립` |
 
 ---
 
@@ -792,3 +793,59 @@ void OnHeal(HealEvent e)
 
 `#시퀀스` `#UI` `#게임필`
 > 종속성: `#게임엔진일반` (UI 시스템 + 애니메이션/시퀀스 시스템)
+
+## 13. 주사위 합산값(summaryValue) 판정
+
+_슬롯에 배치된 주사위(D4/D6/D8 등)를 굴려 합산한 summaryValue를 diceMin/diceMax/criticalValue와 비교해 MISS/일반/치명타를 판정. 플레이어의 주사위 조합이 기대값과 분산을 결정하므로 선택에 전략적 의미가 생김._
+
+**설명**
+D20 단일 롤과의 핵심 차이:
+| | D20 Lerp | summaryValue |
+|---|---|---|
+| 주사위 구성 | 고정 (1d20) | 플레이어가 슬롯에 배치 |
+| 결과 제어 | 불가 (순수 운) | 기대값/분산 조절 가능 |
+| 전략성 | 없음 | 주사위 선택 = 리스크 관리 |
+
+판정 흐름:
+```
+슬롯별 주사위 롤 → 합산 (summaryValue)
+    summaryValue < diceMin              → MISS
+diceMin ≤ summaryValue < criticalValue  → 일반 데미지 (Lerp)
+    summaryValue ≥ criticalValue        → 치명타
+```
+
+주사위별 기대값:
+| 주사위 | 기대값 | 최대값 |
+|---|---|---|
+| D4 | 2.5 | 4 |
+| D6 | 3.5 | 6 |
+| D8 | 4.5 | 8 |
+
+슬롯이 2개이고 D8 × 2를 배치하면 summaryValue 기대값 9, 최대 16.
+
+**구현 (의사코드)**
+```
+summaryValue = 0
+for each slot:
+    if slot.dice != null:
+        summaryValue += Random.Range(1, slot.dice.maxFace + 1)
+
+if summaryValue < spec.finalDiceMin:
+    result = MISS
+elif summaryValue >= spec.finalCriticalValue:
+    result = CRITICAL
+else:
+    t = Clamp01((summaryValue - finalDiceMin) / (finalDiceMax - finalDiceMin))
+    damage = Lerp(minDamage, maxDamage, t)
+    result = NORMAL(damage)
+```
+
+⚠ **주의점**
+- **빈 슬롯** — 주사위 없는 슬롯은 summaryValue 기여 0. 모든 슬롯이 비면 summaryValue=0 → 항상 MISS. 무기 장착 시 빈 슬롯 체크 권장
+- **파라미터 정합** — `criticalValue > diceMax_이론최대합`이면 치명타 불가. `diceMin = diceMax`이면 일반 구간 없음. 파라미터 설계 시 주사위 조합별 최대합 계산 필요
+- **MISS 시너지 규칙** — MISS 결과는 시너지 카운터를 증가시키지 않음 (게임 규약). summaryValue 판정 로직 재설계 시에도 반드시 보존
+- **적 판정** — 적도 DiceSO를 보유하고 동일 summaryValue 흐름으로 판정. 적의 주사위 구성이 난이도 조절 변수
+
+
+`#전투` `#데미지` `#밸런싱` `#게임필`
+> 관련: [[game-technique-notes]] #5 D20 Lerp 보간 데미지 (이전 방식 — D20은 이 프로젝트에서 summaryValue로 대체됨), [[math-algorithm-notes]] #1 Lerp, #3 Clamp | 종속성: `#언어독립`

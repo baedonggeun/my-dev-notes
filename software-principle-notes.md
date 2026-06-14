@@ -48,6 +48,7 @@
 | 10 | **OCP** (Open/Closed) | 확장에는 열려, 수정에는 닫혀 | 새 SO/Strategy 등록만으로 코어 무수정이면 적용(시너지/속성 효과 SO, AnimationConfigSO 매핑) / Manager 내부 분기 추가는 직접 수정 허용 — 인터페이스 폭증을 만들면서까지 강요 X |
 | 11 | **LSP** (Liskov Substitution) | 자식이 부모를 의미 손상 없이 대체 | 의미 손상 발견 즉시 *상속 → 컴포지션 또는 별 베이스 분리* — ItemDataSO/UsableItemDataSO 베이스 분리(idea-notes #19)가 본 원칙 위반 회피 사례 |
 | 12 | **ISP** (Interface Segregation) | 클라이언트가 안 쓰는 메서드에 의존 X | 도메인 인터페이스는 5+ 메서드 시 분리(Effect 3종 Apply/Emit/Describe) / Unity MonoBehaviour의 생명주기 강제는 엔진 제약이므로 위반 묵인 |
+| 13 | **자동화 회귀 판단 기준** (karpathy-regression 해석) | 자동 강제 전면 금지가 아니라 토큰 부하 대비 가치 낮은 자동화만 폐기 | bash 50줄 이하·5초 이하 저비용 일회성 차단(PreToolUse)은 예외 — 복잡한 상태 관리/메트릭 수집/자동 분류가 진짜 폐기 대상. 판단 질문: "이 자동화의 실행 비용이 유지보수 비용보다 큰가?" Yes → 폐기, No → 유지 검토. CasualStrategy: plan-first-guard.sh 도입 근거 (2026-06-04) |
 | 13 | **DIP** (Dependency Inversion) | 추상에 의존, 구체에 의존 X | ctor 주입이 정합 / Manager+Service 부모 역참조는 회색지대로 허용(idea-notes #15), 외부 Manager 호출은 위반(정리 대상) — Service 7개 컴포지션에 적용 |
 | 14 | **GRASP – Information Expert** | 책임은 정보를 가진 객체에 부여 | Effect 객체가 자체 Apply/Emit/Describe — 외부에서 상태 읽고 결정하지 않음. Tell-Don't-Ask(#21)의 책임 분배 측면 |
 | 15 | **GRASP – Pure Fabrication** | 적합한 도메인 클래스가 없으면 신설 | Service/Director/Filter 등 인프라 11종 접미사가 본 원칙의 적용 — 도메인에 없는 책임은 가공 클래스로 |
