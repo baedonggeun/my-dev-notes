@@ -437,7 +437,7 @@ static void Migrate() { /* legacyTypeName → Effect 인스턴스 생성 후 저
 ⚠ **Unity 함정**
 - **Deep Clone 필수** — 다른 SO가 같은 `[SerializeReference]` 인스턴스를 공유할 수 있음. SO 복사 시 `Instantiate(so)` 또는 직렬화 deep copy. 공유 인스턴스를 수정하면 다른 SO에도 silent 전파
 - **struct는 지원 안 됨** — `[SerializeReference]`는 class만 지원. struct를 class로 변환하면 `FormerlySerializedAs` 마이그레이션 불가 → 수동 마이그레이션 메뉴 필수
-- **SubclassSelector 외부 라이브러리** — Unity 기본 내장 아님. `com.mackysoft.serializereference-extensions` 또는 유사 OSS. 없으면 드롭다운 없이 YAML 직접 편집 필요
+- **SubclassSelector 구현 방식** — OSS(`com.mackysoft.serializereference-extensions` 등) 또는 직접 구현 모두 가능. Unity 기본 내장 아님. 직접 구현 핵심: `TypeCache.GetTypesDerivedFrom<T>()`로 서브클래스 수집 → `EditorGUI.DropdownButton` + `GenericMenu`로 드롭다운 → `Activator.CreateInstance(selectedType)` 인스턴스 생성 후 `property.managedReferenceValue`에 할당 (~100줄)
 - **자식이 외부 도메인을 모르게** — `DamageBoostEffect`는 `SynergyType` enum 몰라도 됨. `BattleContext.ApplyDamageMultiplier(float)` 메서드명만 알게 설계. enum 의존 시 새 효과 추가마다 enum 수정 필요 → 결합 폭발
 - **인스펙터 타입 변경 시 기존 값 소실** — 드롭다운에서 타입 변경 시 기존 직렬화 값이 사라짐. 중요 데이터는 변경 전 별도 백업
 
