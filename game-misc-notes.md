@@ -39,6 +39,9 @@
 | 10 | PlayerPrefs Wrapper + 변경 브로드캐스트 | `#매니저` | 영속 설정 wrapper + 변경 시 이벤트 통지 | `#Unity전용` |
 | 11 | Tutorial Raycast Cutout (`ICanvasRaycastFilter`) | `#UI` `#가드` | Rect 배열 안쪽만 raycast 통과시켜 튜토리얼에서 특정 영역만 클릭 가능 | `#Unity전용` |
 | 12 | `Array.Empty<T>()` GC 회피 | `#성능` `#캐시` | 빈 배열 반복 할당 대신 정적 공유 빈 배열 사용 — heap alloc 0 | `#언어독립` |
+| 13 | LayoutElement Accordion | `#UI` `#트릭` | `LayoutElement.preferredHeight` 0↔목표값 코루틴 애니메이션 → LayoutGroup 자동 리플로우로 smooth expand/collapse | `#Unity전용` |
+| 14 | Custom MaskableGraphic | `#UI` `#렌더링경계` | `MaskableGraphic` 상속 + `OnPopulateMesh` override → RectMask2D·CanvasGroup·Raycaster 자동 통합 커스텀 Canvas 그래픽 | `#Unity전용` |
+| 15 | L10N 언어별 폰트 사이즈 매핑 | `#UX` `#UI` | 언어마다 폰트 사이즈 테이블 분리. CJK는 같은 pt가 라틴보다 시각적으로 커 보여 언어별 조정 필요 | `#Unity전용` |
 
 ---
 
@@ -679,3 +682,162 @@ effectiveRts = rts ?? System.Array.Empty<RectTransform>();
 
 `#성능` `#캐시`
 > 관련: [[csharp-syntax-notes]] Span/Memory (유사 GC 최적화 계열) | 종속성: `#언어독립`
+
+## 13. LayoutElement Accordion
+
+_Unity Layout 시스템에서 `LayoutElement.preferredHeight`를 0 ↔ 목표값으로 코루틴 애니메이션해 부드러운 expand/collapse를 구현하는 트릭._
+
+**코드**
+```csharp
+// AttrGroupAccordionController (CasualStrategy)
+[SerializeField] private LayoutElement layoutElement;
+[SerializeField] private float expandedHeight = 120f;
+[SerializeField] private float duration = 0.2f;
+
+private Coroutine _anim;
+
+public void SetExpanded(bool expanded)
+{
+    float target = expanded ? expandedHeight : 0f;
+    if (_anim != null) StopCoroutine(_anim);
+    _anim = StartCoroutine(Animate(target));
+}
+
+private IEnumerator Animate(float target)
+{
+    float start = layoutElement.preferredHeight;
+    float elapsed = 0f;
+    while (elapsed < duration)
+    {
+        elapsed += Time.deltaTime;
+        layoutElement.preferredHeight = Mathf.Lerp(start, target, elapsed / duration);
+        yield return null;
+    }
+    layoutElement.preferredHeight = target;
+    _anim = null;
+}
+```
+
+LayoutGroup(Vertical/Horizontal/Grid) 부모가 있으면 `preferredHeight` 변경 시 자동 리플로우.
+
+**언제 / 대안**
+✅ 접히는 카테고리 헤더, 아코디언 UI, 드롭다운 패널
+⚡ 대안: `RectTransform.sizeDelta` 직접 조작 — LayoutGroup 리플로우가 트리거되지 않음. LayoutGroup 밖 단독 오브젝트에서만 유효
+⚡ 대안: `gameObject.SetActive(false)` — 즉시 사라짐. 부드러운 연출 불가
+
+⚠ **주의점**
+- `preferredHeight = 0`으로 접혀도 자식 오브젝트는 살아있음(`SetActive(false)` 아님). 레이캐스트·이벤트가 그대로 발화되므로 필요 시 `CanvasGroup.blocksRaycasts = false` 병행
+- `expandedHeight`를 런타임에 `LayoutUtility.GetPreferredHeight()` 또는 `RectTransform.rect.height`로 자동 계산하면 콘텐츠 길이에 따라 동적 대응 가능 (단 Start/Awake 이후 레이아웃 확정 시점에 호출)
+- 코루틴이 중단되지 않으면 이전 애니메이션이 새 애니메이션과 겹침 — `StopCoroutine` 후 재시작
+
+
+`#UI` `#트릭`
+> 관련: [[unity-feature-notes]] LayoutGroup, LayoutElement | 종속성: `#Unity전용`
+
+## 14. Custom MaskableGraphic
+
+_`MaskableGraphic`을 상속하고 `OnPopulateMesh(VertexHelper)`만 override하면 RectMask2D·CanvasGroup alpha·GraphicRaycaster에 자동 통합되는 커스텀 Canvas 그래픽을 만들 수 있다._
+
+**코드**
+```csharp
+// VignetteGraphic (CasualStrategy) — 테두리 페이드 커스텀 그래픽
+[RequireComponent(typeof(CanvasRenderer))]
+public class VignetteGraphic : MaskableGraphic
+{
+    [SerializeField] private float edgeWidth = 40f;
+    [SerializeField] private Color vignetteColor = new Color(0f, 0f, 0f, 0.6f);
+
+    protected override void OnPopulateMesh(VertexHelper vh)
+    {
+        vh.Clear();
+        var rect = rectTransform.rect;
+        Color transparent = new Color(vignetteColor.r, vignetteColor.g, vignetteColor.b, 0f);
+
+        // 외곽(불투명) 4꼭지점 + 내부(투명) 4꼭지점으로 테두리 링 구성
+        // vh.AddVert(pos, color, uv) / vh.AddTriangle(i0, i1, i2)
+    }
+
+#if UNITY_EDITOR
+    protected override void OnValidate()
+    {
+        base.OnValidate();
+        SetVerticesDirty();  // Inspector 수정 시 재렌더
+    }
+#endif
+}
+```
+
+핵심 규칙:
+- `MaskableGraphic` 상속 (not `MonoBehaviour`)
+- `[RequireComponent(typeof(CanvasRenderer))]` 필수
+- `OnPopulateMesh(VertexHelper vh)`에서 정점 정의, 첫 줄은 반드시 `vh.Clear()`
+- 파라미터 변경 시 `SetVerticesDirty()` 호출로 재렌더 요청
+
+**언제 / 대안**
+✅ 프로그래밍 방식으로 생성해야 하는 UI 그래픽 (진행도 링, 테두리 그라디언트, 커스텀 다각형)
+✅ RectMask2D 클리핑 영역 내에서 함께 잘려야 하는 커스텀 비주얼
+⚡ 대안: Image + Shader — 텍스처/셰이더로 해결 가능한 경우 이쪽이 더 단순
+⚡ 대안: UI Toolkit VisualElement — Unity 6+ 프로젝트에서는 대안 고려
+
+⚠ **주의점**
+- `raycastTarget = false` 권장 — 그래픽만 표시하고 이벤트는 받지 않을 때 성능 절감
+- `material = null`로 두면 기본 UI 머티리얼 사용 (일반적으로 적절)
+- 크기/색상 등 파라미터 변경 시 `SetVerticesDirty()` / `SetMaterialDirty()` 명시 호출 필수 (`OnValidate`, `OnRectTransformDimensionsChange` 등에서)
+
+
+`#UI` `#렌더링경계`
+> 관련: [[unity-feature-notes]] MaskableGraphic, CanvasRenderer | 종속성: `#Unity전용`
+
+## 15. L10N 언어별 폰트 사이즈 매핑
+
+_로컬라이제이션 시 언어마다 폰트 사이즈 테이블을 분리해서 관리. CJK(한중일)는 같은 pt가 라틴 문자보다 시각적으로 커 보여 언어별 조정이 필요._
+
+**배경**
+한글·한자·일본어는 글자당 정보 밀도가 영어보다 높아 같은 pt에서 영어보다 크게 보인다:
+```
+fontSize = 24 / "진행" (한글 2글자) ↔ "Progress" (영어 8글자)
+→ 한글이 시각적으로 두꺼워 보임 — 버튼·레이블 공간에서 불균형 발생
+```
+
+**코드**
+```csharp
+// L10NFontSizeSO (CasualStrategy) — 언어별 사이즈 테이블 SO
+[CreateAssetMenu]
+public class L10NFontSizeSO : ScriptableObject
+{
+    [Serializable]
+    public class Entry { public string key; public float korean; public float english; }
+    public List<Entry> entries;
+}
+
+// LocalizedText — 언어 변경 시 폰트 사이즈 자동 적용
+public class LocalizedText : MonoBehaviour
+{
+    [SerializeField] private TMP_Text label;
+    [SerializeField] private string fontSizeKey;
+    [SerializeField] private L10NFontSizeSO fontSizeTable;
+
+    private void Apply(Language lang)
+    {
+        label.text = LocalizationManager.Get(locKey, lang);
+        if (fontSizeTable == null || string.IsNullOrEmpty(fontSizeKey)) return;
+        var entry = fontSizeTable.entries.FirstOrDefault(e => e.key == fontSizeKey);
+        if (entry != null)
+            label.fontSize = lang == Language.Korean ? entry.korean : entry.english;
+    }
+}
+```
+
+**언제 / 대안**
+✅ CJK를 지원하고, 공간이 제한된 버튼·레이블이 있을 때
+⚡ 대안: `TextMeshPro Auto Size` — 글자 수에 맞게 자동 축소. 레이아웃이 유동적이라면 더 단순
+⚡ 대안: TMP Font Asset Scale Factor — 폰트 에셋 수준에서 일괄 조정. 해당 폰트 쓰는 모든 텍스트에 적용
+
+⚠ **주의점**
+- 키를 `string`으로 관리하면 오타 위험 — enum 또는 SO 직접 참조로 컴파일 타임 검증 고려
+- 폰트 사이즈 외에 Line Spacing, Character Spacing도 CJK↔라틴 차이가 있을 수 있음
+- TMP의 `enableAutoSizing`이 켜져 있으면 폰트 사이즈 설정이 무시됨 — 수동 사이즈 매핑과 AutoSize는 동시 사용 불가
+
+
+`#UX` `#UI`
+> 관련: [[unity-feature-notes]] TextMeshPro | 종속성: `#Unity전용` (구조 자체는 `#언어독립`)

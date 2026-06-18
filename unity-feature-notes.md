@@ -53,6 +53,8 @@
 | 32 | `ICanvasRaycastFilter` | UI 컴포넌트에서 raycast 통과 영역을 커스터마이징 (튜토리얼 cutout, 도넛 hole 등) | `#Unity전용` `#uGUI` |
 | 44 | Custom MaskableGraphic + OnPopulateMesh | `MaskableGraphic` 상속 + `OnPopulateMesh`에서 버텍스 직접 조립 — 스프라이트 없이 도형/그라디언트/테두리 페이드 구현 | `#Unity전용` `#uGUI` |
 | 45 | L10N 언어별 TMP 폰트 사이즈 | 언어 전환 이벤트에서 `TMP_Text.fontSize`를 언어별 값으로 교체 — `ApplyFontSize(koSize, enSize)`. 0이면 기본값 유지 | `#Unity전용` `#TMP` |
+| 46 | RectMask2D | 2D 사각형 클리핑 마스크 — `Mask`(스텐실 버퍼 2 드로우콜 추가) 대신 RectTransform 경계로 자식 콘텐츠 클리핑. 드로우콜 추가 없음. 원형·커스텀 shape 불가, 축 정렬 직사각형만. `MaskableGraphic` 하위 컴포넌트에 자동 반응 (#44 참조) | `#Unity전용` `#uGUI` |
+| 47 | LayoutElement | LayoutGroup 내 개별 요소 크기 강제 — `minWidth/Height`(최소 보장), `preferredWidth/Height`(여유 있으면 우선), `flexibleWidth/Height`(비율 분배). `ignoreLayout=true`로 레이아웃 제외. `preferredHeight` 0↔목표값 코루틴 보간이 아코디언 애니메이션의 핵심 API | `#Unity전용` `#uGUI` |
 
 ### 오디오
 | # | 기능 | 한 줄 요약 | 종속성 |
