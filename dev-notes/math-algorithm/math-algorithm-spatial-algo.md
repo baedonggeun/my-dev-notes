@@ -422,8 +422,8 @@ function GetAcceleration(state):
 
 ## 분류 메모
 
-- **수학 vs 기법 경계**: Lerp는 *수학*이고, "D20 굴림을 데미지에 Lerp" 는 *기법*([game-technique-notes.md](game-technique-notes.md) 항목 5). 같은 Lerp가 카메라 추적에도 쓰이므로 한 단계 아래에 둔다.
-- **수학 vs Unity API 경계**: Mathf.Lerp는 Unity API([unity-feature-notes.md](unity-feature-notes.md) 항목 27)이지만, "선형 보간"이라는 개념은 엔진 독립적. 본 노트는 *개념*에 집중.
+- **수학 vs 기법 경계**: Lerp는 *수학*이고, "D20 굴림을 데미지에 Lerp" 는 *기법*(game-technique-notes 항목 5). 같은 Lerp가 카메라 추적에도 쓰이므로 한 단계 아래에 둔다.
+- **수학 vs Unity API 경계**: Mathf.Lerp는 Unity API(unity-feature-notes 항목 27)이지만, "선형 보간"이라는 개념은 엔진 독립적. 본 노트는 *개념*에 집중.
 - **승격 후보**: 일반 지식 섹션(항목 9~항목 16)이 본 프로젝트에 도입되면 "사용 중" 표로 이동.
 
 ### 다관점 분리 그룹 (의도된 cross-ref)
@@ -439,7 +439,7 @@ function GetAcceleration(state):
 | 집합 카운팅 | 항목 8 HashSet | 항목 4 Unique-ID Synergy | --- |
 
 ### 통합/제거된 항목
-- **단조증가 SortingOrder** -> [game-misc-notes.md](game-misc-notes.md) 항목 3 SortingOrder 레이어 상수가 SOT (수학적 색채 약함)
-- **비대칭 적분 (Variable Gravity)** -> [game-technique-notes.md](game-technique-notes.md) 항목 1 Asymmetric Jump가 SOT (응용 기법 자체)
+- **단조증가 SortingOrder** -> game-misc-notes 항목 3 SortingOrder 레이어 상수가 SOT (수학적 색채 약함)
+- **비대칭 적분 (Variable Gravity)** -> game-technique-notes 항목 1 Asymmetric Jump가 SOT (응용 기법 자체)
 
 ---
