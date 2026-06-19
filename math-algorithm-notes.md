@@ -99,7 +99,7 @@ function FrameRateIndependentLerp(current, target, rate, dt):
 - **clamped vs unclamped**: `t > 1` 또는 `t < 0`이 의도된 외삽인지 확인. 빌트인은 자동 clamp하는 경우가 많아 외삽 의도 시 명시적 함수(`LerpUnclamped` 등) 필요
 
 
-`#보간` `#O(1)` `#결정론` `#수치매핑` `#게임필`
+#보간 `#O(1)` #결정론 #수치매핑 #게임필
 > 종속성: `#언어독립` `#엔진독립`
 
 ## 2. Linear↔dB 로그 변환 (20·log₁₀)
@@ -147,7 +147,7 @@ AudioMixer.SetFloat("MasterVolume", LinearToDB(sliderValue))
 - **PlayerPrefs 저장** — 볼륨을 저장할 때 *선형*(0~1)으로 저장하고 로드 시 dB 변환 권장. dB 저장 후 역변환 시 -∞ 처리가 복잡해짐
 
 
-`#변환` `#오디오` `#O(1)` `#결정론` `#밸런싱`
+#변환 #오디오 `#O(1)` #결정론 #밸런싱
 > 관련: [[game-technique-notes]] #6 AudioMixer Linear→dB (Unity 적용), [[unity-feature-notes]] #14 AudioMixer, #27 Mathf.Log10 | 종속성: `#언어독립` (수학), 적용은 `#오디오엔진`
 
 ## 3. Clamp / Clamp01 정규화
@@ -194,7 +194,7 @@ function SafeRemap(x, inMin, inMax, outMin, outMax):
 - 성능 -- JIT/AOT에서 branch는 무료. 가독성 우선
 
 
-`#변환` `#안전` `#O(1)` `#결정론`
+#변환 #안전 `#O(1)` #결정론
 > 관련: [[math-algorithm-notes]] #1 Lerp (Remap의 백본) | 종속성: `#언어독립`
 
 ## 4. 멱함수 곡선 (x^n, Power-Law)
@@ -245,7 +245,7 @@ float cost = Mathf.Lerp(100f, 10000f, Mathf.Pow(t, 2f));
 - 비용 + 수익 조합 -- 비용 곡선 n > 1과 수익 곡선 n < 1을 분리하면 전형적 수익체감 구조 완성
 
 
-`#곡선` `#밸런싱` `#O(1)` `#결정론`
+#곡선 #밸런싱 `#O(1)` #결정론
 > 관련: [[game-technique-notes]] #3 Power-Law 강화 곡선, [[math-algorithm-notes]] #1 Lerp | 종속성: `#언어독립`
 
 ## 5. 가중 랜덤 (Weighted Random Sampling)
@@ -320,7 +320,7 @@ function SampleAlias(probs, alias):
 - **가중치 동적 변경** — Alias Method는 가중치 변경 시 재전처리(O(N)) 필요. pity 누적처럼 매 호출마다 가중치가 달라지면 선형 탐색이 더 실용적
 
 
-`#확률` `#가챠` `#O(N)` `#확률적`
+#확률 #가챠 `#O(N)` #확률적
 > 관련: [[game-technique-notes]] #2 가챠 Pity 시스템 (응용), [[math-algorithm-notes]] #6 Pity 누적 시프트 | 종속성: `#언어독립`
 
 ## 6. Pity 누적 시프트 (Cumulative Probability Shift)
@@ -380,7 +380,7 @@ function CalcProbability(base, n, soft, incr, ceiling):
 - **영속 저장** — pity 카운터는 앱 재시작 후에도 유지 필수. PlayerPrefs 또는 서버 저장. 메모리에만 두면 재시작 시 리셋 (치트 가능)
 
 
-`#확률` `#가챠` `#O(1)` `#결정론`
+#확률 #가챠 `#O(1)` #결정론
 > 관련: [[game-technique-notes]] #2 Pity 등급 시프트 (게임 기법 레벨), [[math-algorithm-notes]] #5 가중 랜덤 | 종속성: `#언어독립`
 
 ## 7. Vector2 거리/방향 (벡터 산술)
@@ -437,7 +437,7 @@ float dist = dir.magnitude;
 - Manhattan distance 대안 -- |dx| + |dy|. 그리드 기반 게임에서 정확하고 빠름
 
 
-`#선형대수` `#O(1)` `#결정론` `#게임필`
+#선형대수 `#O(1)` #결정론 #게임필
 > 관련: [[unity-feature-notes]] #27 Mathf (Vector2/3 API) | 종속성: `#언어독립`
 
 ## 8. HashSet 유니크 카운트 (집합 연산)
@@ -483,7 +483,7 @@ function CountUniqueWhere(items[], predicate):
 - foreach 수정 주의 -- HashSet 순회 중 요소 추가/삭제 -> InvalidOperationException
 
 
-`#이산` `#시너지` `#O(N)` `#결정론`
+#이산 #시너지 `#O(N)` #결정론
 > 관련: [[game-technique-notes]] #4 Unique-ID Synergy Counter | 종속성: `#언어독립`
 
 
@@ -570,7 +570,7 @@ value = Lerp(from, to, EaseOutQuad(t))
 - **프레임률 독립성** — `t = elapsed/duration` 구조라 dt를 올바르게 누적하면 프레임률 독립. `Lerp(current, target, 0.1)` 매 프레임 방식([[math-algorithm-notes]] #1)과는 다른 개념
 
 
-`#보간` `#게임필` `#UI` `#애니메이션`
+#보간 #게임필 #UI #애니메이션
 > 관련: [[math-algorithm-notes]] #1 Lerp (이징의 백본), #10 Bezier/Hermite 곡선 (실무 대안 — 베지에로 이징 근사), #11 Perlin Noise (Smootherstep = Perlin fade 함수 `6t⁵-15t⁴+10t³` 동일), [[unity-feature-notes]] #35 AnimationCurve | 종속성: `#언어독립` `#엔진독립` (개념). Unity `AnimationCurve`는 `#Unity전용`
 ---
 
@@ -627,7 +627,7 @@ function Hermite(p0, p1, t0, t1, t):
 - 고차 Bezier(5점+)는 수치 불안정 -- 4점(3차) 이상은 de Casteljau로 분할하거나 B-Spline 사용 고려
 
 
-`#보간` `#곡선` `#O(1)` `#결정론`
+#보간 #곡선 `#O(1)` #결정론
 > 종속성: `#언어독립`
 
 ## 11. Perlin / Simplex Noise
@@ -697,7 +697,7 @@ function FBM(x, y, octaves, lacunarity=2.0, gain=0.5):
 - 3D+에서 Simplex 선호 -- Perlin 3D는 8개 모서리 vs Simplex 4개. 고차원일수록 Simplex 효율 압도
 
 
-`#노이즈` `#근사` `#O(octaves)` `#결정론`
+#노이즈 #근사 `#O(octaves)` #결정론
 > 종속성: `#언어독립`
 
 ## 12. A* 경로 탐색
@@ -754,7 +754,7 @@ function AStar(start, goal, getNeighbors, heuristic):
 - 탐색 깊이 제한 -- 실시간 게임에서는 탐색 깊이/노드 수 제한 필수
 
 
-`#이산` `#기하` `#O(E log V)` `#결정론`
+#이산 #기하 `#O(E log V)` #결정론
 > 종속성: `#언어독립`
 
 ## 13. Quaternion 회전 (Slerp)
@@ -813,7 +813,7 @@ function Slerp(q1, q2, t):
 - 성능 -- Slerp는 sin/acos으로 비쌈. Lerp + 정규화가 더 빠름. 빠른 회전 전환은 Lerp 권장
 
 
-`#선형대수` `#O(1)` `#결정론`
+#선형대수 `#O(1)` #결정론
 > 종속성: `#언어독립`
 
 ## 14. 공간 분할 (Quadtree / Spatial Hash)
@@ -872,7 +872,7 @@ function Query(area):
 - Unity Physics2D는 Spatial Hash 계열 내부 사용 -- 별도 구현보다 Physics2D.Overlap* API 우선 고려
 
 
-`#기하` `#해싱` `#게임필`
+#기하 #해싱 #게임필
 > 종속성: `#언어독립`
 
 ## 15. 정규분포 샘플링 (Box-Muller)
@@ -919,7 +919,7 @@ function NormalRandom(mu, sigma):
 - 꼬리 값 핸들링 -- 게임에서 z > 3 (mu+3sigma)는 클램프 고려. 0.3% 미만 확률
 
 
-`#확률` `#O(1)` `#확률적`
+#확률 `#O(1)` #확률적
 > 종속성: `#언어독립`
 
 ## 16. Reservoir Sampling
@@ -974,7 +974,7 @@ function ReservoirSampleK(stream, k):
 - 대안 Weighted Reservoir -- 각 항목마다 가중치가 다르면 A-ES 알고리즘 사용
 
 
-`#확률` `#O(N)` `#확률적`
+#확률 `#O(N)` #확률적
 > 종속성: `#언어독립`
 
 ---
@@ -1041,7 +1041,7 @@ function GetAcceleration(state):
 - **Verlet 적분 대안** — 에너지 보존이 중요한 물리 퍼즐/로프 시뮬레이션에는 Verlet 적분이 더 안정적. 캐릭터 이동에서는 오일러로 충분
 
 
-`#수치해석` `#근사` `#O(1)` `#결정론`
+#수치해석 #근사 `#O(1)` #결정론
 > 관련: [[game-technique-notes]] #1 비대칭 점프 (Euler 적분의 직접 응용 — g_up/g_down 비대칭 구현) | 종속성: `#언어독립`
 
 ---
