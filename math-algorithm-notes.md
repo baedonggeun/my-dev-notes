@@ -3,7 +3,7 @@
 > 다루는 축: 수학 빌딩블록과 알고리즘. 여러 *기법*이 공유하는 한 단계 아래 도구
 > 다루지 않는 축: 빌딩블록의 게임 응용(→ [[game-technique-notes]]), 엔진 API 형태(→ [[unity-feature-notes]])
 > 적용 범위: 언어/엔진 완전 독립 — 가장 portable한 노트
-> 관련 노트: [[game-technique-notes]] (수학 응용 기법), [[unity-feature-notes]] #27 (Mathf 빌트인)
+> 관련 노트: [[game-technique-notes]] (수학 응용 기법), [[unity-feature-notes]] 항목 27 (Mathf 빌트인)
 > 평생 노트 정책: 인덱스 표는 portable, 풀노트는 공식 + 의사코드 + 주의점
 > 승격 임계치: 일반 지식 섹션이 30개 이상 누적 시 카테고리 분리 검토
 > 풀노트 작성 기준: 인덱스 1줄만으로 구현/적용이 불충분한 항목. 자명한 항목만 인덱스로 종료
@@ -148,7 +148,7 @@ AudioMixer.SetFloat("MasterVolume", LinearToDB(sliderValue))
 
 
 #변환 #오디오 `#O(1)` #결정론 #밸런싱
-> 관련: [[game-technique-notes]] #6 AudioMixer Linear→dB (Unity 적용), [[unity-feature-notes]] #14 AudioMixer, #27 Mathf.Log10 | 종속성: `#언어독립` (수학), 적용은 `#오디오엔진`
+> 관련: [[game-technique-notes]] 항목 6 AudioMixer Linear→dB (Unity 적용), [[unity-feature-notes]] 항목 14 AudioMixer, 항목 27 Mathf.Log10 | 종속성: `#언어독립` (수학), 적용은 `#오디오엔진`
 
 ## 3. Clamp / Clamp01 정규화
 
@@ -195,7 +195,7 @@ function SafeRemap(x, inMin, inMax, outMin, outMax):
 
 
 #변환 #안전 `#O(1)` #결정론
-> 관련: [[math-algorithm-notes]] #1 Lerp (Remap의 백본) | 종속성: `#언어독립`
+> 관련: [[math-algorithm-notes]] 항목 1 Lerp (Remap의 백본) | 종속성: `#언어독립`
 
 ## 4. 멱함수 곡선 (x^n, Power-Law)
 
@@ -246,7 +246,7 @@ float cost = Mathf.Lerp(100f, 10000f, Mathf.Pow(t, 2f));
 
 
 #곡선 #밸런싱 `#O(1)` #결정론
-> 관련: [[game-technique-notes]] #3 Power-Law 강화 곡선, [[math-algorithm-notes]] #1 Lerp | 종속성: `#언어독립`
+> 관련: [[game-technique-notes]] 항목 3 Power-Law 강화 곡선, [[math-algorithm-notes]] 항목 1 Lerp | 종속성: `#언어독립`
 
 ## 5. 가중 랜덤 (Weighted Random Sampling)
 
@@ -321,7 +321,7 @@ function SampleAlias(probs, alias):
 
 
 #확률 #가챠 `#O(N)` #확률적
-> 관련: [[game-technique-notes]] #2 가챠 Pity 시스템 (응용), [[math-algorithm-notes]] #6 Pity 누적 시프트 | 종속성: `#언어독립`
+> 관련: [[game-technique-notes]] 항목 2 가챠 Pity 시스템 (응용), [[math-algorithm-notes]] 항목 6 Pity 누적 시프트 | 종속성: `#언어독립`
 
 ## 6. Pity 누적 시프트 (Cumulative Probability Shift)
 
@@ -381,7 +381,7 @@ function CalcProbability(base, n, soft, incr, ceiling):
 
 
 #확률 #가챠 `#O(1)` #결정론
-> 관련: [[game-technique-notes]] #2 Pity 등급 시프트 (게임 기법 레벨), [[math-algorithm-notes]] #5 가중 랜덤 | 종속성: `#언어독립`
+> 관련: [[game-technique-notes]] 항목 2 Pity 등급 시프트 (게임 기법 레벨), [[math-algorithm-notes]] 항목 5 가중 랜덤 | 종속성: `#언어독립`
 
 ## 7. Vector2 거리/방향 (벡터 산술)
 
@@ -438,7 +438,7 @@ float dist = dir.magnitude;
 
 
 #선형대수 `#O(1)` #결정론 #게임필
-> 관련: [[unity-feature-notes]] #27 Mathf (Vector2/3 API) | 종속성: `#언어독립`
+> 관련: [[unity-feature-notes]] 항목 27 Mathf (Vector2/3 API) | 종속성: `#언어독립`
 
 ## 8. HashSet 유니크 카운트 (집합 연산)
 
@@ -484,7 +484,7 @@ function CountUniqueWhere(items[], predicate):
 
 
 #이산 #시너지 `#O(N)` #결정론
-> 관련: [[game-technique-notes]] #4 Unique-ID Synergy Counter | 종속성: `#언어독립`
+> 관련: [[game-technique-notes]] 항목 4 Unique-ID Synergy Counter | 종속성: `#언어독립`
 
 
 ---
@@ -542,7 +542,7 @@ EaseOutBounce(t):
 Smoothstep(t)   = 3t² - 2t³
 
 // Smootherstep — f'(0)=f'(1)=0, f''(0)=f''(1)=0 (속도+가속도 모두 0)
-Smootherstep(t) = 6t⁵ - 15t⁴ + 10t³    // Perlin Noise fade 함수와 동일 (#11 참조)
+Smootherstep(t) = 6t⁵ - 15t⁴ + 10t³    // Perlin Noise fade 함수와 동일 (항목 11 참조)
 ```
 
 **구현**
@@ -558,7 +558,7 @@ value = Lerp(from, to, EaseOutQuad(t))
 ```
 
 엔진별 빌트인:
-- Unity: `AnimationCurve.Evaluate(t)` — Inspector에서 곡선 직접 편집 가능 ([[unity-feature-notes]] #35)
+- Unity: `AnimationCurve.Evaluate(t)` — Inspector에서 곡선 직접 편집 가능 ([[unity-feature-notes]] 항목 35)
 - DOTween: `Ease.OutQuad`, `Ease.InBack` 등 Penner 계열 내장
 - CSS: `cubic-bezier(x1,y1,x2,y2)` (다른 표현법이지만 동일 결과)
 
@@ -567,11 +567,11 @@ value = Lerp(from, to, EaseOutQuad(t))
 - **`t` 범위 초과** — `elapsed > duration`이면 `t > 1`. Penner 함수는 t > 1 정의 밖. `Clamp01(t)` 필수
 - **Elastic/Back 오버슈팅** — `t ∈ [0,1]`이어도 출력이 [0,1] 범위 초과 (Back: -0.1~1.1). 색상/알파 등 경계가 의미있는 값에 주의
 - **AnimationCurve가 실용적** — Unity에서는 Penner 함수 직접 구현보다 `AnimationCurve` Inspector 편집이 더 유연하고 디자이너 조정 가능. 단, `Evaluate` 반복 호출 비용이 있으므로 대량 호출 시 측정 필요
-- **프레임률 독립성** — `t = elapsed/duration` 구조라 dt를 올바르게 누적하면 프레임률 독립. `Lerp(current, target, 0.1)` 매 프레임 방식([[math-algorithm-notes]] #1)과는 다른 개념
+- **프레임률 독립성** — `t = elapsed/duration` 구조라 dt를 올바르게 누적하면 프레임률 독립. `Lerp(current, target, 0.1)` 매 프레임 방식([[math-algorithm-notes]] 항목 1)과는 다른 개념
 
 
 #보간 #게임필 #UI #애니메이션
-> 관련: [[math-algorithm-notes]] #1 Lerp (이징의 백본), #10 Bezier/Hermite 곡선 (실무 대안 — 베지에로 이징 근사), #11 Perlin Noise (Smootherstep = Perlin fade 함수 `6t⁵-15t⁴+10t³` 동일), [[unity-feature-notes]] #35 AnimationCurve | 종속성: `#언어독립` `#엔진독립` (개념). Unity `AnimationCurve`는 `#Unity전용`
+> 관련: [[math-algorithm-notes]] 항목 1 Lerp (이징의 백본), 항목 10 Bezier/Hermite 곡선 (실무 대안 — 베지에로 이징 근사), 항목 11 Perlin Noise (Smootherstep = Perlin fade 함수 `6t⁵-15t⁴+10t³` 동일), [[unity-feature-notes]] 항목 35 AnimationCurve | 종속성: `#언어독립` `#엔진독립` (개념). Unity `AnimationCurve`는 `#Unity전용`
 ---
 
 ---
@@ -1042,30 +1042,30 @@ function GetAcceleration(state):
 
 
 #수치해석 #근사 `#O(1)` #결정론
-> 관련: [[game-technique-notes]] #1 비대칭 점프 (Euler 적분의 직접 응용 — g_up/g_down 비대칭 구현) | 종속성: `#언어독립`
+> 관련: [[game-technique-notes]] 항목 1 비대칭 점프 (Euler 적분의 직접 응용 — g_up/g_down 비대칭 구현) | 종속성: `#언어독립`
 
 ---
 
 ## 분류 메모
 
-- **수학 vs 기법 경계**: Lerp는 *수학*이고, "D20 굴림을 데미지에 Lerp" 는 *기법*([game-technique-notes.md](game-technique-notes.md) #5). 같은 Lerp가 카메라 추적에도 쓰이므로 한 단계 아래에 둔다.
-- **수학 vs Unity API 경계**: Mathf.Lerp는 Unity API([unity-feature-notes.md](unity-feature-notes.md) #27)이지만, "선형 보간"이라는 개념은 엔진 독립적. 본 노트는 *개념*에 집중.
-- **승격 후보**: 일반 지식 섹션(#9~#16)이 본 프로젝트에 도입되면 "사용 중" 표로 이동.
+- **수학 vs 기법 경계**: Lerp는 *수학*이고, "D20 굴림을 데미지에 Lerp" 는 *기법*([game-technique-notes.md](game-technique-notes.md) 항목 5). 같은 Lerp가 카메라 추적에도 쓰이므로 한 단계 아래에 둔다.
+- **수학 vs Unity API 경계**: Mathf.Lerp는 Unity API([unity-feature-notes.md](unity-feature-notes.md) 항목 27)이지만, "선형 보간"이라는 개념은 엔진 독립적. 본 노트는 *개념*에 집중.
+- **승격 후보**: 일반 지식 섹션(항목 9~항목 16)이 본 프로젝트에 도입되면 "사용 중" 표로 이동.
 
 ### 다관점 분리 그룹 (의도된 cross-ref)
 같은 코드 사례를 *수학 개념 / 게임 기법 / Unity API* 세 축에서 본다. 어느 한 곳이 SOT가 아니라 축별 진입점이 다르다.
 
 | 공통 주제 | math (개념) | game-technique (응용) | unity-feature (API) |
 |---|---|---|---|
-| 선형 보간 | #1 Lerp | #5 D20 데미지 | #27 Mathf |
-| dB 변환 | #2 Linear↔dB | #6 AudioMixer 지각 변환 | #14 AudioMixer / #27 Mathf.Log10 |
-| 멱함수 | #4 Power-Law | #3 강화 보상 곡선 | --- |
-| 가중 랜덤 + Pity | #5, #6 | #2 가챠 등급 보정 | --- |
-| 벡터 산술 | #7 Vector2 | --- | #27 Mathf (Vector2/3) |
-| 집합 카운팅 | #8 HashSet | #4 Unique-ID Synergy | --- |
+| 선형 보간 | 항목 1 Lerp | 항목 5 D20 데미지 | 항목 27 Mathf |
+| dB 변환 | 항목 2 Linear↔dB | 항목 6 AudioMixer 지각 변환 | 항목 14 AudioMixer / 항목 27 Mathf.Log10 |
+| 멱함수 | 항목 4 Power-Law | 항목 3 강화 보상 곡선 | --- |
+| 가중 랜덤 + Pity | 항목 5, 항목 6 | 항목 2 가챠 등급 보정 | --- |
+| 벡터 산술 | 항목 7 Vector2 | --- | 항목 27 Mathf (Vector2/3) |
+| 집합 카운팅 | 항목 8 HashSet | 항목 4 Unique-ID Synergy | --- |
 
 ### 통합/제거된 항목
-- **단조증가 SortingOrder** -> [game-misc-notes.md](game-misc-notes.md) #3 SortingOrder 레이어 상수가 SOT (수학적 색채 약함)
-- **비대칭 적분 (Variable Gravity)** -> [game-technique-notes.md](game-technique-notes.md) #1 Asymmetric Jump가 SOT (응용 기법 자체)
+- **단조증가 SortingOrder** -> [game-misc-notes.md](game-misc-notes.md) 항목 3 SortingOrder 레이어 상수가 SOT (수학적 색채 약함)
+- **비대칭 적분 (Variable Gravity)** -> [game-technique-notes.md](game-technique-notes.md) 항목 1 Asymmetric Jump가 SOT (응용 기법 자체)
 
 ---

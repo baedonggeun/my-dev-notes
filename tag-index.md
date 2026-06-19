@@ -1,6 +1,6 @@
 # 태그 인덱스
 
-> 전체 태그 **118개** · 항목 링크 **331개**  
+> 전체 태그 **116개** · 항목 링크 **327개**  
 > pre-commit hook이 커밋 시 자동 갱신.
 
 ---
@@ -11,16 +11,6 @@
 - [[idea-notes#3. Sequence(연출) ↔ Data(데이터) 흐름 분리|Sequence(연출) ↔ Data(데이터) 흐름 분리]] · _아이디어_
 - [[idea-notes#37. Claude Code 듀얼 모델 라우팅 / settings.local.json env 우선순위 함정|Claude Code 듀얼 모델 라우팅 / settings.local.json env 우선순위 함정]] · _아이디어_
 - [[idea-notes#38. Caveman — LLM 출력 토큰 압축 skill|Caveman — LLM 출력 토큰 압축 skill]] · _아이디어_
-
-## #2D
-
-- [[game-technique-notes#1. 비대칭 점프 (Asymmetric Jump)|비대칭 점프 (Asymmetric Jump)]] · _게임 기법_
-- [[game-technique-notes#20. 레이캐스팅 (Raycasting)|레이캐스팅 (Raycasting)]] · _게임 기법_
-
-## #3D
-
-- [[game-technique-notes#20. 레이캐스팅 (Raycasting)|레이캐스팅 (Raycasting)]] · _게임 기법_
-- [[game-technique-notes#21. 절차적 애니메이션 + 역운동학 (Procedural Animation + IK)|절차적 애니메이션 + 역운동학 (Procedural Animation + IK)]] · _게임 기법_
 
 ## #FP
 

@@ -3,7 +3,7 @@
 > 다루는 축: C# 언어 자체의 키워드 / 연산자 / 문법. 빠른 회상용 cheatsheet
 > 다루지 않는 축: 디자인 패턴(→ [[design-pattern-notes]]), Unity API(→ [[unity-feature-notes]]), 단편 트릭(→ [[game-misc-notes]])
 > 적용 범위: C# 전 버전 (사용 시점 C# 버전을 항목에 명시)
-> 관련 노트: [[design-pattern-notes]] #19 CRTP, [[game-misc-notes]] #12 Array.Empty
+> 관련 노트: [[design-pattern-notes]] 항목 19 CRTP, [[game-misc-notes]] 항목 12 Array.Empty
 > 등재 기준: **본인이 코드에 한 번이라도 쓴 것**. Microsoft Learn 문서를 옮기는 게 아니라 "내가 실제 사용한 것만" 누적
 > 작성 시작: 2026-05-15
 
@@ -74,7 +74,7 @@
 | 29 | `where T : struct` | 값 타입만 | |
 | 30 | `where T : new()` | 기본 생성자 필요 | `new T()` 가능 |
 | 31 | `where T : Foo` | Foo의 자식만 | |
-| 32 | `where T : Foo<T>` | **CRTP** 자기 참조 | → [[design-pattern-notes]] #19 |
+| 32 | `where T : Foo<T>` | **CRTP** 자기 참조 | → [[design-pattern-notes]] 항목 19 |
 | 33 | `where T : unmanaged` | 비관리 타입만 (Span, P/Invoke) | |
 | 34 | `default(T)` | T의 기본값 | `T x = default;` |
 
@@ -116,7 +116,7 @@
 | 56 | `#pragma warning disable` | 특정 경고 억제 | `#pragma warning disable CS0649` |
 | 57 | `[Conditional("X")]` | 심볼 없으면 호출 자체 제거 | `[Conditional("DEBUG")] void Log() {}` |
 | 58 | `[Obsolete]` | 사용 시 경고/에러 | `[Obsolete("Use Foo2 instead")]` |
-| 59 | `[Serializable]` | 직렬화 가능 표시 | → [[unity-feature-notes]] #4 |
+| 59 | `[Serializable]` | 직렬화 가능 표시 | → [[unity-feature-notes]] 항목 4 |
 | 60 | `[CallerMemberName]` | 호출자 이름 자동 주입 | `void Log([CallerMemberName] string n="")` |
 
 ## 비동기 / 이터레이터
@@ -153,7 +153,7 @@
 | 70 | `.ToDictionary(k, v)` | 키-값 매핑 + dict 빌드 | `items.ToDictionary(i => i.Id, i => i)` |
 | 71 | `.FirstOrDefault(...)` | 첫 매칭 또는 default | `list.FirstOrDefault(x => x.Id == id)` |
 | 72 | `.Any(...)` / `.All(...)` | 존재 / 모두 검사 | `list.Any(x => x.Done)` |
-| 73 | `Array.Empty<T>()` | GC 회피 빈 배열 | → [[game-misc-notes]] #12 |
+| 73 | `Array.Empty<T>()` | GC 회피 빈 배열 | → [[game-misc-notes]] 항목 12 |
 
 ---
 
@@ -619,7 +619,7 @@ void Spawn<T>() where T : MonoBehaviour, new() { }
 // MonoBehaviour 자식이면서 기본 생성자를 가진 타입만 허용
 ```
 
-**CRTP (`where T : Foo<T>`)**: 자기 참조 제네릭. `MonoSingleton<T> where T : MonoSingleton<T>` 패턴. 상세는 [[design-pattern-notes]] #19 참조.
+**CRTP (`where T : Foo<T>`)**: 자기 참조 제네릭. `MonoSingleton<T> where T : MonoSingleton<T>` 패턴. 상세는 [[design-pattern-notes]] 항목 19 참조.
 
 ---
 
@@ -1118,7 +1118,7 @@ record는 C# 9부터 이미 동일 문법. class/struct로 확장된 것이 C# 1
 - `static` 생성자: 클래스 수준 캐시/테이블 빌드, 1회 초기화 보장
 - Primary constructor: 단순 DI 컨테이너, record-style 불변 데이터 클래스
 
-> **생성자 주입 패턴** — 생성자를 이용해 의존성을 명시적으로 받는 DI 패턴. Unity 제약(MonoBehaviour new() 불가)과 대안 포함 → [[design-pattern-notes]] #20 DI
+> **생성자 주입 패턴** — 생성자를 이용해 의존성을 명시적으로 받는 DI 패턴. Unity 제약(MonoBehaviour new() 불가)과 대안 포함 → [[design-pattern-notes]] 항목 20 DI
 
 ---
 
@@ -1201,8 +1201,8 @@ var content = reader.ReadToEnd();
 
 ## 분류 메모
 
-- **vs design-pattern-notes**: CRTP는 *문법 기법*인 동시에 *디자인 패턴*이라 양쪽에 등재 (design-pattern #19에 풀노트, 여기엔 인덱스 참조)
-- **vs game-misc-notes**: `Array.Empty<T>()` 같은 GC 트릭은 *언어 기법*이지만 *성능 트릭* 측면이 강해 game-misc #12에 둠. 여기엔 LINQ 섹션에 참조 링크만
+- **vs design-pattern-notes**: CRTP는 *문법 기법*인 동시에 *디자인 패턴*이라 양쪽에 등재 (design-pattern 항목 19에 풀노트, 여기엔 인덱스 참조)
+- **vs game-misc-notes**: `Array.Empty<T>()` 같은 GC 트릭은 *언어 기법*이지만 *성능 트릭* 측면이 강해 game-misc 항목 12에 둠. 여기엔 LINQ 섹션에 참조 링크만
 - **vs unity-feature-notes**: `[Serializable]` 같은 속성은 *C# 문법*이지만 Unity 의미와 분리 불가능 → unity-feature에 둠
 - **승격 규칙**: 단순 문법은 인덱스 표에서 종료, 함정/응용 누적 시 풀노트로
 
