@@ -14,6 +14,12 @@
 
 ---
 
+**서브 노트:**
+- [[idea-notes-architecture|아이디어 — 아키텍처·패턴]] — 아키텍처·설계 패턴·Unity 구현 패턴
+- [[idea-notes-principles|아이디어 — 법칙·원칙·테스트]] — 소프트웨어 법칙·원칙·TDD
+- [[idea-notes-unity-tools|아이디어 — Unity·도구·메타]] — Unity 특화·도구·프로세스·자체관찰
+
+
 ## 태그 목록
 
 ### 상태
@@ -46,8 +52,8 @@
 | 6 | 결과 객체에 재계산 가능 필드 추가 | `#패턴` `#아키텍처` | 이미 생성된 결과 객체(dice roll)에 reinforced/final* 필드 추가 → 원본 입력(rollValue) 유지하며 보정 델타만 더해 type 재판정. 호출 위치 변경 없이 재계산 | `#1회검증` |
 | 7 | 외부 대기 카운터의 모든 발행 경로 노출 | `#아키텍처` `#패턴` `#디자인원리` | 비동기 작업이 큐/즉시/지연 등 다중 발행 경로를 가질 때, 외부 대기가 추적하는 카운터·플래그가 *모든* 경로를 노출하지 않으면 누락 경로 활성 중에도 대기가 race로 풀린다. 신규 경로 도입 시 추적 메커니즘 확장이 강제 — try/finally로 카운터 보호 | `#1회검증` |
 | 8 | SerializeReference 자식 인스턴스 deep clone | `#패턴` `#아키텍처` | `Activator.CreateInstance(src.GetType())` + `JsonUtility.ToJson/FromJsonOverwrite` 라운드트립. 새 자식 추가 시 필드 복사 코드 갱신 불필요. SerializeReference 인스턴스 공유로 인한 의도치 않은 전파 방지 (Editor 마이그레이션/SO 일괄 동기화 유틸에 유용). 단, `[SerializeField]`/public 외 필드는 기본값으로 리셋되므로 데이터 전용 자식에만 안전 | `#1회검증` |
-| 10 | 문서 갱신 → 원자적 커밋 (Doc-First Commit) | `#프로세스` `#디자인원리` `#자체관찰` | 코드 구현 후 문서 갱신(check-done)을 먼저 끝내고 코드+문서를 한 커밋에 묶으면 커밋이 항상 "완성된 상태"를 보장. 반대(commit→doc)는 미완성 커밋 + 문서 커밋 분리로 blame 복잡도 증가 | `#1회검증` |
 | 9 | 풀별 spawn 위치 캡슐화 (Pool-Position Encapsulation) | `#패턴` `#아키텍처` `#디자인원리` | 동적 UI(popup/floating text) 풀의 Hierarchy 위치 자체가 spawn 위치. 호출자가 `parentRT`를 인자로 안 받고 메서드 이름(`SpawnEnemyDamage`/`SpawnPlayerInstant`)이 풀(=위치) 선택. 효과: 호출 시그니처 축소 + null fallback 누더기 제거 + 디자이너가 씬에서 위치 변경(코드 0). 트레이드오프: 동적 위치 대응 불가 → 적 단일/위치 고정 게임에서 적합. 다중 대상 게임이면 부적합. 함정: 런타임에 형제 GameObject가 추가되면 풀이 first sibling으로 밀려 popup 가려짐 → 매 spawn 시 `transform.SetAsLastSibling()` 호출로 보정 | `#1회검증` |
+| 10 | 문서 갱신 → 원자적 커밋 (Doc-First Commit) | `#프로세스` `#디자인원리` `#자체관찰` | 코드 구현 후 문서 갱신(check-done)을 먼저 끝내고 코드+문서를 한 커밋에 묶으면 커밋이 항상 "완성된 상태"를 보장. 반대(commit→doc)는 미완성 커밋 + 문서 커밋 분리로 blame 복잡도 증가 | `#1회검증` |
 | 10 | 단계 표식과 값 reset 책임 분리 (Mark/Reset) | `#패턴` `#아키텍처` `#디자인원리` | 다단계 흐름(단계1=표식 단계, 단계2=실제 적용 단계)에서 단계1은 *플래그만* 설정(Mark), 값 reset은 단계2가 진입 직후 mods 캐싱 후 즉시 호출(Reset). 단일 메서드가 플래그+값 reset을 합쳐 수행하면 단계2 진입 시점에 이미 값이 0이라 가산이 봉쇄되는 함정의 해법. `firstSlotPending` 등 별도 플래그로 단계2 진입 조건 표식. 함정: 단계1 내부에 `yield` 추가 시 `!flag` 체크+셋 동시 통과 race 가능 — atomic check-and-set 또는 단일 컨텍스트 보장 필요 | `#1회검증` |
 | 11 | View 가 인터랙션 컴포넌트 SerializeField 소유 + Binder는 참조만 | `#패턴` `#아키텍처` `#디자인원리` | 슬롯형 UI에서 DragHandler/DropHandler/EventTrigger 같은 인터랙션 컴포넌트를 UIBinder가 런타임 `AddComponent`로 부착하면 (a) Binder가 슬롯 구성·생성 책임까지 떠안고 (b) 인스펙터에서 슬롯이 어떤 입력을 받는지 한눈에 안 보이고 (c) prefab의 인스펙터 미세 조정과 충돌. 해결: 슬롯 View(`InventorySlotView` 등)가 `[SerializeField] ItemDragHandler dragHandler` 등을 직접 소유 → prefab YAML에 정적 부착 → Binder는 `view.DragHandler.address = ...` 주입만. 트레이드오프: prefab YAML에 컴포넌트 N×3 추가 작업 필요(슬롯 16개면 48 entry). 마이그레이션 전이성: SlotView 필드 null이면 GetComponent/AddComponent 폴백 유지 → prefab 와이어 작업을 별 묶음으로 분리 가능. 적용 가능성: 인스펙터 와이어 보존 원칙을 따르는 모든 슬롯형 UI(인벤토리/큐/장비창/상점). 동적 풀 패턴(Instantiate per item)에는 부적합 (정적 슬롯형에서만 효과) | `#1회검증` |
 | 12 | 중첩 prefab 컴포넌트 직접 직렬화 우회 (Transform[] + GetComponent) | `#패턴` `#아키텍처` | 부모 prefab의 `[SerializeField] ChildComponent[]` 가 *중첩 prefab 인스턴스 내부 component* 를 직접 참조하면 Unity가 stripped MonoBehaviour entry를 자동 생성하지 않아 모든 슬롯이 null로 직렬화됨. YAML 직접 편집으로 stripped MB 블록(`--- !u!114 &{id} stripped` + `m_CorrespondingSourceObject` + `m_PrefabInstance`) 수동 작성도 Unity가 인식 안 함. **우회**: 필드 타입을 `Transform[]` 또는 `GameObject[]` 로 변경 → 중첩 prefab의 stripped *RectTransform* fileID(자동 생성됨) 참조 가능 → `OnInitialize/Awake` 에서 `GetComponent<T>()` 로 캐싱. 사례: 12 SynergyType 슬롯을 SynergyUIBinder.slots에 wire 시도 → null 직렬화 → Transform[] 우회 + GetComponent 캐싱으로 해결. 적용 가능성: 정적 슬롯 UI에서 nested prefab 인스턴스의 custom component를 부모가 참조해야 할 때 (인벤토리 슬롯, 시너지 행, 보상 카드, 능력 슬롯 등). 검증: Unity MCP `mcpforunity://scene/gameobject/{id}/component/{type}` 리소스 조회로 SerializeField null 즉시 검출 가능. 트레이드오프: 한 단계 간접 (`view.SomeComponent` 대신 캐싱 배열 lookup) | `#1회검증` |
@@ -85,9 +91,8 @@
 | 42 | Graceful Multi-Pull Degradation (여유분만큼 뽑기) | `#게임UI` `#디자인원리` | X회 일괄 뽑기에서 티켓 부족 시 보유량만큼만 뽑기 제공. reject 대신 부분 허용 → 마찰 감소. 버튼 텍스트 "10회(3장)" 동적 표시 결합 권장. 보유량 ≥ 1일 때만 활성화 | `#1회검증` |
 | 43 | Global Dismiss Gesture (어디서든 닫기) | `#패턴` `#게임UI` `#디자인원리` | 열린 플로팅 UI(툴팁/드롭다운)를 전역 InputHandler/Manager가 제스처(우클릭/ESC) 감지 후 닫기 — UI 자체가 닫힘 트리거를 모름. 내부 버튼은 `eventData.Use()` 또는 포인터 영역 검사로 propagation 차단 | `#1회검증` |
 
-*인덱스 표가 SOT, 풀노트는 위 승격 트리거 임박 시 작성.*
-
 ---
+
 
 # 풀노트
 
@@ -121,203 +126,4 @@
 
 ## 항목별 노트
 
-## 1. 결정론적 시간축 양자 예측 (달력 SOT 시뮬레이션)
-
-_시뮬레이션 결과는 *실제 흘러간 시간(real time)*이 아니라 *게임 내 달력 시간(in-game calendar)*에만 의존하도록 설계 — 가속/슬로우/스킵해도 동일 시점 = 동일 결과._
-
-**출처/맥락**
-- 첫 도출: CasualStrategy (2026-05-16) — 본인 구현 후 일반 원리로 추출
-- 비교 참조: Paradox 그랜드 스트래티지(EU4/CK3/Stellaris), Rimworld, Factorio (모두 "tick 단위 결정론" 표준 어휘 사용)
-- 반례: 초창기 Paradox 게임의 고속 시뮬 desync, Dark Souls의 프레임 종속 무기 내구도 버그
-
-**핵심 원리 3층**
-업계에서 "결정론"은 세 가지 다른 층위로 분리됨:
-
-1. **입력→출력 결정론** — 같은 입력 = 같은 출력. 리플레이·네트코드 기반. 거의 모든 게임 필요
-2. **프레임레이트 독립성** — 60fps와 144fps 결과 동일. `Time.deltaTime` 곱셈의 원칙
-3. **달력/시간축 SOT** ← *본 항목* — 시간 가속/스킵해도 동일 결과. 시간 조작 UI가 있는 게임만 필요
-
-본 항목은 3번. 1·2번을 전제로 함.
-
-**적용 가능성**
-
-| 장르 | 필요성 | 이유 |
-|---|---|---|
-| 실시간 대전략 (Paradox류) | 필수 | 1x~5x 속도 조절 |
-| 콜로니 심 (Rimworld, DF) | 필수 | 가속 중 인과 일관성 |
-| 라이프 심 (Stardew, 동물의 숲) | 필수 | 잠자기·시간 스킵 |
-| 아이들/방치형 | 필수 | 오프라인 진행 계산 |
-| 자동화 (Factorio) | 필수 | UPS 독립 시뮬 |
-| 오픈월드 RPG (위처3, BOTW) | 부분 | 명상/모닥불 스킵 시점만 |
-| 스포츠 매니저 (FM, MyGM) | 부분 | 시즌 시뮬 모드만 |
-| FPS / 격투 / 레이싱 / 리듬 / 퍼즐 | **불필요** | 가속 개념 없음 → 오버엔지니어링 |
-| 턴제 (Civ류) | 불필요 | 한 턴 안에서 계산 완결 |
-
-**미해결 질문 (다른 프로젝트 적용 시 검증 필요)**
-- 결정론 시드 관리: 게임 시간 + 엔티티 ID 해시로 충분한가? 멀티 스레드 시 충돌은?
-- 부동소수점 누적 오차 회피: 정수 틱 기반이 정답인가, fixed-point 산술이 정답인가?
-- 가속 시 양자 예측(미래 상태 미리 계산)의 비용 vs 정확도 트레이드오프
-- 멀티스레드 시뮬레이션 환경에서 결정론 유지 — 작업 순서 보장 비용
-- 세이브/로드 시 시뮬레이션 상태 직렬화 — 전체 dump 아닌 incremental 가능한가?
-- 양자 예측이 빗나갔을 때(플레이어 개입) 분기 처리 — rollback인가, branch-and-merge인가?
-
-## 2. Rewind 시스템 (시간 되감기 / Replay)
-
-_플레이어 행동을 일정 시간 되돌리거나, 과거 상태를 재생하는 기능. 구현 시 *동기화 대상이 너무 많아* 함정이 큰 패턴._
-
-**출처/맥락**
-- 첫 도출: 복수 프로젝트 회상 (2026-05-15 등재 시 명시적 보류)
-- README 기록: "Rewind 1건은 구현 함정(Animator/물리/AI 상태 동기화 어려움)으로 미등재 — 실제 채택 시점에 등재"
-- 비교 참조: Braid, Prince of Persia: Sands of Time, Forza Horizon, SUPERHOT (역행 메커니즘), Celeste 어시스트 모드
-
-**적용 가능성**
-- 액션/플랫포머: 죽음 후 되감기, 시간 되돌리기 메커니즘 (Braid)
-- 레이싱: 트랙 이탈/사고 후 되돌리기 (Forza)
-- 퍼즐: 마지막 행동 취소, 시도 무한화
-- 리플레이/관전: 베스트 플레이 녹화·공유
-
-**미해결 질문 (이래서 미구현)**
-- **Animator 상태**: 현재 클립 / `normalizedTime` / transition 진행도 → 매 프레임 캡처 비용 vs 정확도
-- **물리 상태**: Rigidbody position/velocity/angularVelocity → 결정론 보장 어려움 (PhysX는 본래 비결정론)
-- **AI 상태**: BT/FSM 노드 인덱스 + 블랙보드 변수 + 인식 큐 → 직렬화 표면이 너무 큼
-- **사운드/이펙트**: 진행 중 SFX/VFX를 되감기 시점에 재배치? 단순 stop? Foley 동기 문제
-- **메모리**: 60fps × 분 단위 × 다수 객체 → 압축 전략 필수 (delta encoding? keyframe interval?)
-- **대안**: 차라리 [[idea-notes#1. 결정론적 시간축 양자 예측 (달력 SOT 시뮬레이션)|결정론적 시뮬레이션]]처럼 입력 + 시드만 저장하고 *재시뮬레이션*하는 rollback netcode 패턴이 나을 수 있음
-
-## 3. Sequence(연출) ↔ Data(데이터) 흐름 분리
-
-_데이터 코루틴/로직은 수치 계산과 이벤트 발행만 책임지고, 시각 연출은 별도 Sequence가 자체 코루틴/Tween으로 관리. 데이터 흐름이 시각 대기에 발목 잡히지 않도록 분리._
-
-**출처/맥락**
-- 첫 도출: CasualStrategy (Gotcha G-030, content-state-flow ADR)
-- 트리거 사례: 전투 시스템 stub 단계 — `*Sequence` / `BattleAnimUtil` / `PlayerTurnController.PlayWeaponAttack` 본문이 모두 stub(즉시 완료)이어도 데이터 흐름(`DiceController.RollAll`, `ExecuteAttack`)이 정상 동작해야 함
-- 응용 사례: **Binder ↔ Sequence 분리** (2026-05-20 SynergyCounterShakeSequence) — 같은 이벤트의 두 구독자 책임 분리. Binder는 매핑(type→slot) + 완료 이벤트(`OverlayRefreshed`)만 노출, prev/state 비교와 연출 코루틴은 Sequence가 보유. Binder에 prev tracking을 추가하면 책임 위배 (UIBinder ≠ 상태 추적자)
-- 일반 "MVC View 분리"와의 차이: **시각 타임라인 자체를 데이터 코루틴에서 떼어낸다**는 점이 핵심
-
-**원리**
-- 데이터 코루틴은 **수치 계산 + 이벤트 발행**만 책임
-- 시각 동기화 필요 시 **`Action onComplete` 콜백** 또는 **이벤트 hook**(`OnDiceRolling` / `OnDamageDealt` / `OnSlotsChanged`)으로 통지
-- *Sequence 본문은 stub이어도 동일 시그니처 유지 → 빈 시퀀스/Tween 반환 + `if (seq != null) yield return seq.WaitForCompletion();` null 가드
-- `WaitForSeconds` 등 시각 대기를 데이터 코루틴 본문에 끼워 넣지 않음 (한 번 끼우면 시각 ON/OFF 토글 시 데이터 타이밍 변함)
-- 결과: 연출 ON/OFF 토글이 데이터 흐름에 영향 0, 디버깅 시 연출 통째로 비활성화 가능, 빠른 모드/스킵 옵션 자연 지원
-
-**적용 가능성**
-- 턴제/카드: 카드 효과 계산(데이터) ↔ 카드 이동/이펙트(연출)
-- 격투: 데미지 판정 ↔ 히트 이펙트/슬로우모션
-- RPG 전투: 스킬 데미지 ↔ 스킬 시전 애니메이션
-- 빌더/시뮬레이션: 건설 완료 처리 ↔ 건설 애니메이션
-- **본질**: "연출 없이도 게임이 동작해야 한다" 원칙 — 테스트성 + 스킵 옵션 + 디버깅 모드 모두 자연 지원
-
-**미해결 질문**
-- 시각이 데이터에 *영향을 줘야 하는* 경우 (히트스톱, 슬로우모션 중 입력 처리) 처리법
-- 연출이 무겁고 데이터가 빠르면 큐가 쌓이는 문제 — 큐 한도 / 스킵 정책
-- 멀티플레이에서 클라이언트별 연출 길이 차이가 데이터 동기에 영향
-- 본 패턴의 **언어/엔진 독립 형태**는? Unity 외(Godot, UE)에서 동일 분리 가능한가?
-- 연출이 데이터 결과를 "예고"하는 경우 (다이스 굴림 결과를 미리 알아야 연출 가능) 분리 위반 또는 lookahead 패턴 필요
-
-## 38. Caveman — LLM 출력 토큰 압축 skill
-
-_AI 코딩 에이전트 응답을 "원시인 스타일"로 압축해 출력 토큰 ~65% 절감. SKILL.md 1파일이면 충분, SessionStart hook으로 자동 활성화도 가능._
-
-**출처/맥락**
-- 출처: [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) 오픈소스 / 유튜브 소개 영상 (2026-05-25 발견)
-- 원리: `SKILL.md` frontmatter + 압축 규칙 본문 → Claude Code 스킬로 로드 → 이후 응답에 규칙 적용
-- 핵심 효과: 출력 토큰 ~65% 절감 (벤치마크 기준 최대 87%), 컨텍스트 성장 속도 감소로 입력 토큰도 간접 절감
-- 논문 근거: 2026-03 논문 — LLM에 짧게 답하도록 강제 시 정확도 오히려 상승 (말 늘리다 논리 꼬이는 현상 방지)
-
-**구조 / 채택 방식**
-
-| 컴포넌트 | 역할 | 채택 여부 |
-|----------|------|----------|
-| `/caveman` SKILL.md | 압축 모드 opt-in (lite/full/ultra 3단계) | ✅ CasualStrategy |
-| `/caveman-compress` SKILL.md | CLAUDE.md 등 입력 파일 영구 압축 (Python 없이 Claude 세션 직접) | ✅ CasualStrategy |
-| SessionStart hook | 매 세션 자동 주입 (깜빡 방지 + 컨텍스트 압축 후 재주입) | ✅ CasualStrategy |
-| Stats 추적 (Node.js) | 절감 토큰량 누적 시각화 | ❌ 불채택 (복잡도 대비 가치 낮음) |
-| Wenyan 한자 모드 | 한자 문언문으로 극한 압축 | ❌ 불채택 (한국어 프로젝트 불필요) |
-
-**자동 주입 vs 수동 /caveman 토큰 차이**
-- 차이 없음. 둘 다 동일한 SKILL.md 내용(~500토큰)을 컨텍스트에 추가.
-- SessionStart의 가치는 토큰이 아닌 **신뢰성** — 깜빡 방지 + 컨텍스트 압축 후 drift 방지.
-- 절감 본체는 출력 토큰 감소. 평균 응답 500토큰 기준 약 325토큰/턴 절감 → SKILL.md 비용 2턴 이내 회수.
-
-**적용 가능성**
-- Claude Code, Cursor, Windsurf, Cline, Copilot 등 40+ 에이전트 지원 (원본 도구 기준)
-- Claude Code 한정: `.claude/skills/caveman/SKILL.md` 하나로 충분. Node.js 불필요.
-- `caveman-compress`: CLAUDE.md / MEMORY.md 등 매 세션 로드되는 대용량 자연어 파일에 효과 최대. 코드 파일(.cs/.json 등)은 압축 대상 아님.
-- karpathy 원칙 2(사용자 자율) 정합: opt-in(/caveman) 또는 session-scoped 자동(SessionStart). 강제 차단 없음.
-
-## 37. Claude Code 듀얼 모델 라우팅 / settings.local.json env 우선순위 함정
-
-_`settings.local.json`의 `env` 블록은 셸 $PROFILE env보다 우선 주입된다 — DeepSeek 기본 + Claude opt-in 구성에서 이 블록이 잘못 남아있으면 모든 Claude Code 세션이 덮어씌워진다._
-
-**출처/맥락**
-- 첫 도출: CasualStrategy (2026-05-25) — DeepSeek 기본/$PROFILE 설정 후에도 VSCode 확장 세션이 Claude에 연결되던 문제 디버깅 중 발견
-- 환경: Claude Code CLI + VSCode 확장 + PowerShell $PROFILE + DeepSeek API (Anthropic-compatible endpoint)
-
-**문제 원인 상세**
-
-Claude Code는 기동 시 다음 순서로 env를 결정한다:
-
-```
-settings.local.json env 블록   ← 최우선 (셸 env 덮어씀)
-    ↑ 이것이 있으면 아래는 무시
-$PROFILE env (DeepSeek 설정)   ← 셸 기동 시 주입
-    ↑ VSCode 확장 프로세스는 이것을 안 가질 수 있음
-프로세스 상속 env              ← VSCode를 어디서 열었느냐에 따라 다름
-```
-
-**발생했던 구체 시나리오 2가지**
-
-1. **settings.local.json에 Claude URL 잔존**: 테스트/디버깅 중 `ANTHROPIC_BASE_URL = https://api.anthropic.com`을 env 블록에 넣었다가 지우지 않음 → $PROFILE에 DeepSeek 설정해도 모든 세션이 Claude로 강제됨
-2. **toggle 스크립트가 "삭제"로 DeepSeek 복귀 시도**: `settings.local.json` env 블록을 삭제하면 셸 env 상속에 의존하는데, VSCode 확장 프로세스는 $PROFILE 없이 시작될 수 있음(VSCode를 시작 메뉴/바로가기로 열면 $PROFILE 미소싱) → env 없음 = Anthropic 기본값으로 폴백
-
-**해결**
-
-- **settings.local.json env 블록을 삭제하지 말고 명시적으로 기록**: DeepSeek 모드 ↔ Claude 모드 전환 시 해당 값을 완전히 기록
-- **toggle 스크립트 수정** (`d:\AI\toggle-claude-model.ps1`): "DeepSeek 복귀 = 블록 삭제" → "DeepSeek 복귀 = DeepSeek env 블록 명시 기록"
-
-```powershell
-# DeepSeek 모드 (settings.local.json env 블록)
-{
-  "ANTHROPIC_BASE_URL": "https://api.deepseek.com/anthropic",
-  "ANTHROPIC_AUTH_TOKEN": "sk-...",
-  "ANTHROPIC_MODEL": "deepseek-v4-pro[1m]",
-  ...
-}
-
-# Claude 모드 (settings.local.json env 블록)
-{
-  "ANTHROPIC_BASE_URL": "https://api.anthropic.com"
-  // AUTH_TOKEN 없음 → OAuth 사용
-}
-```
-
-- **VSCode 터미널 단축 함수** ($PROFILE에 추가): `function tm { & d:\AI\toggle-claude-model.ps1 }` → `tm` 한 번으로 전환 + "Restart Claude Code session to apply." 출력
-
-**핵심 주의사항**
-
-- `ANTHROPIC_AUTH_TOKEN`을 Claude 모드 env 블록에 넣으면 안 됨 → Pro 플랜 OAuth가 아닌 API 크레딧으로 과금됨 ("Credit balance is too low" 에러 원인)
-- settings.local.json은 `.gitignore`에 포함 → API 키 기록 안전
-- 설정 변경 후 Claude Code 세션 재시작 필수 (실행 중에는 반영 안 됨)
-
-**적용 가능성**
-Claude Code + 외부 LLM API(DeepSeek/OpenAI-compatible/Azure 등) 듀얼 라우팅 구성 모든 경우. `settings.local.json` env 블록은 개발 환경 오버라이드의 최우선 채널이므로 잘못 남아있으면 $PROFILE/시스템 env를 모두 무력화한다.
-
-**추가 발견 (2026-05-29) — LiteLLM 프록시 필수 + 함정 3종**
-
-Claude Code는 Anthropic SDK로 `/v1/messages` 엔드포인트에 요청하며 `role: system` 메시지를 포함한다. DeepSeek의 Anthropic 호환 엔드포인트(`api.deepseek.com/anthropic`)는 이를 거부(400). LiteLLM 프록시를 중간에 두어 Anthropic→OpenAI 포맷 변환 필수.
-
-LiteLLM config 3종 함정:
-1. **`api_base` 누락** → LiteLLM이 OpenAI로 라우팅, `deepseek-v4-pro` 모델 없다고 404
-2. **`openai/` 프리픽스** → `/v1/messages` 라우팅 실패. `deepseek/` 프리픽스 필수
-3. **`drop_params` 누락** → Anthropic 전용 파라미터가 DeepSeek로 넘어가 에러
-
-정상 작동 config:
-```yaml
-litellm_params:
-  model: deepseek/deepseek-v4-pro   # openai/ 아닌 deepseek/ 필수
-  api_base: https://api.deepseek.com/v1
-  api_key: sk-...
-litellm_settings:
-  drop_params: true
-```
+> 서브 노트를 참조하세요.
