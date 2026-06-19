@@ -653,3 +653,88 @@ OnCombatEvent += entry =>
 
 #행동 #이벤트
 > 관련: [[design-pattern-notes]] 항목 16 Observer (기반 이벤트 패턴), csharp-syntax-notes #패턴매칭 (switch expression) | 종속성: `#OOP` `#언어독립`
+
+
+## 25. Effect 삼분 (Apply / Emit / Describe)
+
+_하나의 효과를 **Apply**(수치 계산·상태 변경) · **Emit**(파티클·사운드·팝업) · **Describe**(툴팁 텍스트) 세 메서드로 고정 분리하는 abstract base class 패턴._
+
+**직관**
+"영수증 끊기 → 물건 건네기 → 전단지 쓰기" — 계산(Apply)·전달(Emit)·광고(Describe) 세 동작은 독립. 광고 문구가 바뀌어도 계산 코드를 건드릴 이유가 없다.
+
+**문제 상황**
+효과 1건에 수치 계산, VFX 재생, 툴팁 문자열 생성이 섞이면 세 가지 이유로 동시에 바뀌는 신 God-method가 된다. 로컬라이제이션 담당자가 효과 수치 코드를 건드려야 하고, VFX 프리팹을 바꾸면 배틀 로직 테스트가 깨진다.
+
+**설명**
+
+```csharp
+// 추상 베이스 — 세 메서드를 계약으로 강제
+[Serializable]
+public abstract class AttributeEffect
+{
+    // 수치 계산 + 상태 변경 전용. UI 코드 없음.
+    // 반환값은 후속 Emit/로그에 전달할 결과 데이터.
+    public abstract EffectOutcome Apply(in AttrEffectContext ctx);
+
+    // 팝업·파티클·사운드·배틀로그 전용. Apply 완료 후 호출.
+    // Apply 결과(outcome)를 받아 "무엇이 일어났는지"만 표시.
+    public abstract void Emit(in AttrEffectContext ctx, in EffectOutcome outcome);
+
+    // 툴팁 텍스트 반환. 배틀 컨텍스트 없이 호출됨.
+    public abstract (string main, string reinforced) Describe();
+}
+
+// 구체 구현 — Vampire 흡혈 효과
+public sealed class VampireAttributeEffect : AttributeEffect
+{
+    public int basePercent;
+
+    public override EffectOutcome Apply(in AttrEffectContext ctx)
+    {
+        int heal = Mathf.RoundToInt(ctx.DamageDealt * basePercent / 100f);
+        int actual = ctx.Bm.Health.HealPlayer(heal, emitPopup: false); // Emit에서 따로 발행
+        return new EffectOutcome(actual, 0, 0);
+    }
+
+    public override void Emit(in AttrEffectContext ctx, in EffectOutcome outcome)
+    {
+        ctx.Emitter?.SpawnPlayerHeal(outcome.Heal, allowZero: true); // 팝업만
+    }
+
+    public override (string main, string reinforced) Describe()
+    {
+        string main = L.GetFormat("attr_effect_vampire_fmt", basePercent);
+        return (main, string.Empty);
+    }
+}
+```
+
+**호출 순서**
+```
+[배틀 루프]
+  outcome = effect.Apply(ctx)        // 1. 계산·상태 변경
+  effect.Emit(ctx, outcome)          // 2. 연출 발행
+  log.Append(effect.BuildLogRow(…))  // 3. 로그 (선택)
+
+[툴팁 시스템]
+  (main, reinforced) = effect.Describe()  // 배틀과 무관한 경로
+```
+
+Apply가 `EffectOutcome` (readonly struct)을 반환하면 Emit이 그 값을 받아 표시. Emit이 Apply 결과를 자체 계산하지 않으므로 "표시된 숫자"와 "실제 처리된 숫자"가 항상 일치한다.
+
+**언제 쓰나 / 피할 때**
+- ✅ 하나의 효과 개념이 수치 변화 + 연출 + 텍스트 설명을 동시에 갖는 경우
+- ✅ 효과 종류가 5개 이상으로 늘어날 때 — 추가는 새 서브클래스 1개 작성으로 완결
+- ✅ 툴팁·배틀·테스트 세 경로를 각각 독립적으로 실행해야 할 때
+- ❌ 효과가 1-2개에 불과할 때 — 일반 메서드로 충분, 추상화 오버헤드 불필요
+- ❌ 연출이 아예 없는 순수 수치 효과 — Emit을 빈 메서드로 남기면 계약이 형식화됨
+
+⚠ **주의점**
+- **Emit에서 재계산 금지** — `outcome`을 다시 계산하지 말고 Apply에서 받은 값을 그대로 표시. Apply/Emit 간 수치 불일치가 생기면 디버그가 매우 어렵다
+- **Describe는 무상태** — 배틀 컨텍스트(`AttrEffectContext`)를 받지 않음. 툴팁은 전투 중이 아닌 UI 단계에서도 표시되므로 ctx가 없어도 동작해야 한다
+- **SynergyAttrEffect는 Describe 없음** — 시너지 효과 설명은 SynergyDataSO가 따로 보유. SynergyAttrEffect는 Apply + Emit만 계약 (game-technique-notes 항목 14 참조)
+- **Apply의 부수효과** — Apply는 "상태 변경 포함"이지만 UI 발행은 금지. `HealPlayer(emitPopup: false)`처럼 팝업 억제 플래그를 명시적으로 넘겨야 한다
+
+
+#행위 #구조
+> 관련: design-pattern-notes 항목 16 Observer (Emit 발행 채널), game-technique-notes 항목 14 속성·시너지 효과 분리 (본 패턴의 도메인 적용) | 종속성: `#OOP` `#언어독립`
