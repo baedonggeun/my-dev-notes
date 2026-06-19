@@ -5,7 +5,6 @@
 작성 시작: 2026-05-15
 도구: Obsidian (wikilink 자동 처리) + git
 원격: github.com/baedonggeun/my-dev-notes (private)
-첫 도출 프로젝트: [CasualStrategy](https://github.com/baedonggeun/CasualStrategy) — `docs/decisions/harness/cross-repo-knowledge.md` ADR
 
 ---
 
@@ -55,14 +54,15 @@
 ### 노트별 풀노트 템플릿
 
 풀노트 마지막 메타 표기 (노트 유형별):
-- **design-pattern / software-principle / math / game-technique**: `**메타**` 블록 (종속성 + 첫 도출 + 태그)
+- **design-pattern / software-principle / math / game-technique**: `**메타**` 블록 (종속성 + 태그)
 - **game-design / game-misc / unity-feature / csharp**: 태그 인라인 + `>` 종속성 라인
+
+_구분 기준: 언어·엔진 중립 4종 → **메타** 블록 / 엔진·언어 종속 4종 → 인라인 + `>` 라인_
 
 ```
 // design-pattern 계열
 **메타**
 - 종속성: {`#언어독립` / `#Unity전용` 등}
-- 첫 도출: {프로젝트명 + 날짜}
 - 태그: {태그들}
 
 // game-design 계열
@@ -228,8 +228,7 @@ _이탤릭 한 줄 요약_
 1. 새 프로젝트 폴더 생성
 2. 이 repo도 IDE에서 함께 열기 (또는 Obsidian vault로 열기)
 3. 작업 중 패턴 발견 → 즉시 인덱스에 등재
-4. "첫 도출" 메타에 새 프로젝트명 추가 (기존 항목 재발견 시)
-5. 프로젝트 종료 시 노트 갱신 + commit
+4. 프로젝트 종료 시 노트 갱신 + commit
 
 ### 분기/연 단위 리뷰
 - 인덱스 표 훑어보기
@@ -255,12 +254,3 @@ _이탤릭 한 줄 요약_
 - 평생 노트는 commit이 갱신 기록 — `git log`가 회상 도구
 - 큰 재구성 시 commit 메시지에 "이주/승격/분리" 명시
 - 분기에 1회 force push 없이 push (히스토리 보존)
-
----
-
-## 첫 도출 기록
-
-- **CasualStrategy** (2026-05-15) — Unity 6 캐주얼 전략 게임. 7개 노트 최초 정립. 약 100+ 인덱스 항목, 풀노트 3개(Lerp / Asymmetric Jump / Coyote Time / Hold-to-Repeat)
-- **복수 프로젝트** (구일자 미상, 2026-05-15에 회상 등재) — 액션 2D 추정. 본 노트 누락 항목 9개 등재: DefaultExecutionOrder, Physics2D Layer Matrix, Physics2D NonAlloc, Input System (New), Parallax Scrolling, DI 패턴, Domain-Scoped Injection Interface, Streaming Pattern, Animator Layer + Avatar Mask. Rewind 1건은 구현 함정(Animator/물리/AI 상태 동기화 어려움)으로 미등재 — 실제 채택 시점에 등재
-- **idea-notes 신설** (2026-05-16) — 미구현 아이디어/관찰 기법 인박스. 3건 등재: ① 결정론적 시간축 양자 예측(달력 SOT 시뮬레이션, CasualStrategy 도출), ② Rewind 시스템(복수 프로젝트에서 보류, `#미구현`), ③ Sequence ↔ Data 흐름 분리(CasualStrategy G-030 기반, `#1회검증`)
-- **software-principle-notes 신설** (2026-05-21) — CasualStrategy 4원칙(Think Before Coding / Simplicity First / Surgical Changes / Goal-Driven) 정착 후 일반 소프트웨어 원칙으로 추출. 47개 인덱스(카테고리 A~G), 풀노트 9개(항목 1 YAGNI / 항목 3 DRY / 항목 6 Boy Scout Rule **채택 안 함** / 항목 7 AHA / 항목 9 SRP / 항목 32 SLAP / 항목 38 Make Illegal States Unrepresentable / 항목 42 Hyrum's Law / 항목 43 Postel's Law). idea-notes 인박스 항목 21~항목 27 동시 등재(Mechanical Sympathy / Conway's Law / Brooks's Law / Wirth's Law / AAA / F.I.R.S.T. / Given-When-Then — 모두 `#본인적용미정`). 본인 입장 표기 룰: 라벨(`#수용` 등) 금지, *왜 + 어디 적용 / 대안 / 오용 지점* 1줄

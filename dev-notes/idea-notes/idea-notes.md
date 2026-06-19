@@ -18,7 +18,9 @@
 **서브 노트:**
 - [[idea-notes-architecture|아이디어 — 아키텍처·패턴]] — 아키텍처·설계 패턴·Unity 구현 패턴
 - [[idea-notes-principles|아이디어 — 법칙·원칙·테스트]] — 소프트웨어 법칙·원칙·TDD
-- [[idea-notes-unity-tools|아이디어 — Unity·도구·메타]] — Unity 특화·도구·프로세스·자체관찰
+- [[idea-notes-unity-engine|아이디어 — Unity 엔진·렌더링]] — Unity 엔진 함정·인스펙터·렌더링
+- [[idea-notes-process-ai|아이디어 — 프로세스·AI 도구]] — AI 워크플로우·도구·메타 프로세스
+- [[idea-notes-game-ux|아이디어 — 게임 UX]] — 게임 UI·UX 설계 패턴
 
 
 ## 태그 목록
