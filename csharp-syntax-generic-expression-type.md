@@ -2,7 +2,7 @@
 
 > 상위 노트: [[csharp-syntax-notes]] (전체 인덱스 디스패처)
 > 다루는 축: 제네릭/제약·표현식/람다·자료형 정의
-> 다루지 않는 축: [[csharp-syntax-type-null-pattern|C# 문법 — 타입·null·패턴]] / [[csharp-syntax-async-infra-collection|C# 문법 — 비동기·인프라·컬렉션]]
+> 다루지 않는 축: C# 문법 — 타입·null·패턴 / C# 문법 — 비동기·인프라·컬렉션
 
 ---
 
@@ -33,7 +33,7 @@
 | 29 | `where T : struct` | 값 타입만 | |
 | 30 | `where T : new()` | 기본 생성자 필요 | `new T()` 가능 |
 | 31 | `where T : Foo` | Foo의 자식만 | |
-| 32 | `where T : Foo<T>` | **CRTP** 자기 참조 | → [[design-pattern-notes]] 항목 19 |
+| 32 | `where T : Foo<T>` | **CRTP** 자기 참조 | → design-pattern-notes 항목 19 |
 | 33 | `where T : unmanaged` | 비관리 타입만 (Span, P/Invoke) | |
 | 34 | `default(T)` | T의 기본값 | `T x = default;` |
 
@@ -143,7 +143,7 @@ void Spawn<T>() where T : MonoBehaviour, new() { }
 // MonoBehaviour 자식이면서 기본 생성자를 가진 타입만 허용
 ```
 
-**CRTP (`where T : Foo<T>`)**: 자기 참조 제네릭. `MonoSingleton<T> where T : MonoSingleton<T>` 패턴. 상세는 [[design-pattern-notes]] 항목 19 참조.
+**CRTP (`where T : Foo<T>`)**: 자기 참조 제네릭. `MonoSingleton<T> where T : MonoSingleton<T>` 패턴. 상세는 design-pattern-notes 항목 19 참조.
 
 ---
 

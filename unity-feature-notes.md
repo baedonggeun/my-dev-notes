@@ -1,9 +1,10 @@
 # Unity 엔진 기능 노트
 
+> 상위 노트: [[README]]
 > 다루는 축: Unity 빌트인 API / 패키지 / 에디터 기능 카탈로그. "이 기능을 어디서 어떻게 썼더라" reference
-> 다루지 않는 축: Unity 독립적 개념/패턴(→ [[design-pattern-notes]], [[math-algorithm-notes]])
+> 다루지 않는 축: Unity 독립적 개념/패턴(→ design-pattern-notes, math-algorithm-notes)
 > 적용 범위: **Unity 전용** — 본 노트는 의도적으로 엔진 종속. 다른 엔진 이주 시 대부분 폐기 대상
-> 관련 노트: [[game-misc-notes]] (Unity API 응용 트릭), [[math-algorithm-notes]] (Mathf 개념 본체)
+> 관련 노트: game-misc-notes (Unity API 응용 트릭), math-algorithm-notes (Mathf 개념 본체)
 > 평생 노트 정책: 인덱스 표는 카탈로그 형식, 풀노트는 C# 실제 코드 + Unity 함정
 > 승격 임계치: 카테고리당 항목 10개 이상 시 카테고리별 분리 검토
 > 풀노트 작성 기준: 인덱스 1줄만으로 구현/적용이 불충분한 항목. 자명한 항목만 인덱스로 종료
@@ -61,7 +62,7 @@
 | 24 | `[MenuItem]` + EditorUtility / AssetDatabase | 에디터 메뉴 추가 + 에셋 조작 API | `#Unity전용` `#에디터` |
 | 25 | `#if UNITY_EDITOR` 조건부 컴파일 | 에디터 전용 코드 분리 (빌드에서 제외) | `#Unity전용` `#에디터` |
 | 26 | PrefabBuilders 패턴 | 에디터 스크립트로 `.prefab` 생성 (런타임 Instantiate/YAML 직접 작성 회피) | `#Unity전용` `#에디터` |
-| 27 | Mathf (Clamp01, Log10, Lerp, Vector2/3) | 수학 빌트인 래퍼 (개념 본체는 [[math-algorithm-notes]]) | `#Unity전용` |
+| 27 | Mathf (Clamp01, Log10, Lerp, Vector2/3) | 수학 빌트인 래퍼 (개념 본체는 math-algorithm-notes) | `#Unity전용` |
 | 28 | `Time.deltaTime` / `timeScale` / `unscaledDeltaTime` | 프레임 시간 + 게임 속도 조절 + UI 일시정지 우회 | `#Unity전용` `#필수` |
 | 29 | Color 유틸 | RGB/HSV 변환, 색상 lerp, 알파 조작 | `#Unity전용` |
 | 30 | `Debug.Log` / `LogError` / `LogWarning` | 콘솔 로깅 (개발 필수, 빌드에선 일부 stripped) | `#Unity전용` `#필수` |

@@ -2,7 +2,7 @@
 
 > 상위 노트: [[idea-notes]] (전체 인덱스 디스패처)
 > 다루는 축: 아키텍처·설계 패턴·Unity 구현 패턴
-> 다루지 않는 축: [[idea-notes-principles|아이디어 — 법칙·원칙·테스트]] / [[idea-notes-unity-tools|아이디어 — Unity·도구·메타]]
+> 다루지 않는 축: 아이디어 — 법칙·원칙·테스트 / 아이디어 — Unity·도구·메타
 
 ---
 

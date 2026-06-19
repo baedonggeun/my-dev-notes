@@ -2,7 +2,7 @@
 
 > 상위 노트: [[math-algorithm-notes]] (전체 인덱스 디스패처)
 > 다루는 축: 선형보간·비선형·곡선·회전·좌표변환
-> 다루지 않는 축: [[math-algorithm-probability|수학/알고리즘 — 확률·통계·집합]] / [[math-algorithm-spatial-algo|수학/알고리즘 — 공간·알고리즘]]
+> 다루지 않는 축: 수학/알고리즘 — 확률·통계·집합 / 수학/알고리즘 — 공간·알고리즘
 
 ---
 
@@ -132,7 +132,7 @@ AudioMixer.SetFloat("MasterVolume", LinearToDB(sliderValue))
 
 
 #변환 #오디오 `#O(1)` #결정론 #밸런싱
-> 관련: [[game-technique-notes]] 항목 6 AudioMixer Linear→dB (Unity 적용), [[unity-feature-notes]] 항목 14 AudioMixer, 항목 27 Mathf.Log10 | 종속성: `#언어독립` (수학), 적용은 `#오디오엔진`
+> 관련: game-technique-notes 항목 6 AudioMixer Linear→dB (Unity 적용), unity-feature-notes 항목 14 AudioMixer, 항목 27 Mathf.Log10 | 종속성: `#언어독립` (수학), 적용은 `#오디오엔진`
 
 ---
 
@@ -234,7 +234,7 @@ float cost = Mathf.Lerp(100f, 10000f, Mathf.Pow(t, 2f));
 
 
 #곡선 #밸런싱 `#O(1)` #결정론
-> 관련: [[game-technique-notes]] 항목 3 Power-Law 강화 곡선, [[math-algorithm-notes]] 항목 1 Lerp | 종속성: `#언어독립`
+> 관련: game-technique-notes 항목 3 Power-Law 강화 곡선, [[math-algorithm-notes]] 항목 1 Lerp | 종속성: `#언어독립`
 
 ---
 
@@ -307,7 +307,7 @@ value = Lerp(from, to, EaseOutQuad(t))
 ```
 
 엔진별 빌트인:
-- Unity: `AnimationCurve.Evaluate(t)` — Inspector에서 곡선 직접 편집 가능 ([[unity-feature-notes]] 항목 35)
+- Unity: `AnimationCurve.Evaluate(t)` — Inspector에서 곡선 직접 편집 가능 (unity-feature-notes 항목 35)
 - DOTween: `Ease.OutQuad`, `Ease.InBack` 등 Penner 계열 내장
 - CSS: `cubic-bezier(x1,y1,x2,y2)` (다른 표현법이지만 동일 결과)
 
@@ -320,7 +320,7 @@ value = Lerp(from, to, EaseOutQuad(t))
 
 
 #보간 #게임필 #UI #애니메이션
-> 관련: [[math-algorithm-notes]] 항목 1 Lerp (이징의 백본), 항목 10 Bezier/Hermite 곡선 (실무 대안 — 베지에로 이징 근사), 항목 11 Perlin Noise (Smootherstep = Perlin fade 함수 `6t⁵-15t⁴+10t³` 동일), [[unity-feature-notes]] 항목 35 AnimationCurve | 종속성: `#언어독립` `#엔진독립` (개념). Unity `AnimationCurve`는 `#Unity전용`
+> 관련: [[math-algorithm-notes]] 항목 1 Lerp (이징의 백본), 항목 10 Bezier/Hermite 곡선 (실무 대안 — 베지에로 이징 근사), 항목 11 Perlin Noise (Smootherstep = Perlin fade 함수 `6t⁵-15t⁴+10t³` 동일), unity-feature-notes 항목 35 AnimationCurve | 종속성: `#언어독립` `#엔진독립` (개념). Unity `AnimationCurve`는 `#Unity전용`
 ---
 
 ---

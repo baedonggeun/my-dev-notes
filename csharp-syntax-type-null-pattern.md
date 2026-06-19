@@ -2,7 +2,7 @@
 
 > 상위 노트: [[csharp-syntax-notes]] (전체 인덱스 디스패처)
 > 다루는 축: 접근/상속 제어자·null 처리·패턴 매칭
-> 다루지 않는 축: [[csharp-syntax-generic-expression-type|C# 문법 — 제네릭·표현식·자료형]] / [[csharp-syntax-async-infra-collection|C# 문법 — 비동기·인프라·컬렉션]]
+> 다루지 않는 축: C# 문법 — 제네릭·표현식·자료형 / C# 문법 — 비동기·인프라·컬렉션
 
 ---
 

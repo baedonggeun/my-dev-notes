@@ -2,7 +2,7 @@
 
 > 상위 노트: [[unity-feature-notes]] (전체 인덱스 디스패처)
 > 다루는 축: 오디오·렌더링·물리·입력·애니메이션·데이터·에디터·유틸
-> 다루지 않는 축: [[unity-feature-core|Unity 기능 — 코어·라이프사이클]] / [[unity-feature-ui|Unity 기능 — UI 시스템]]
+> 다루지 않는 축: Unity 기능 — 코어·라이프사이클 / Unity 기능 — UI 시스템
 
 ---
 
@@ -40,7 +40,7 @@
 | 24 | `[MenuItem]` + EditorUtility / AssetDatabase | 에디터 메뉴 추가 + 에셋 조작 API | `#Unity전용` `#에디터` |
 | 25 | `#if UNITY_EDITOR` 조건부 컴파일 | 에디터 전용 코드 분리 (빌드에서 제외) | `#Unity전용` `#에디터` |
 | 26 | PrefabBuilders 패턴 | 에디터 스크립트로 `.prefab` 생성 (런타임 Instantiate/YAML 직접 작성 회피) | `#Unity전용` `#에디터` |
-| 27 | Mathf (Clamp01, Log10, Lerp, Vector2/3) | 수학 빌트인 래퍼 (개념 본체는 [[math-algorithm-notes]]) | `#Unity전용` |
+| 27 | Mathf (Clamp01, Log10, Lerp, Vector2/3) | 수학 빌트인 래퍼 (개념 본체는 math-algorithm-notes) | `#Unity전용` |
 | 28 | `Time.deltaTime` / `timeScale` / `unscaledDeltaTime` | 프레임 시간 + 게임 속도 조절 + UI 일시정지 우회 | `#Unity전용` `#필수` |
 | 29 | Color 유틸 | RGB/HSV 변환, 색상 lerp, 알파 조작 | `#Unity전용` |
 | 30 | `Debug.Log` / `LogError` / `LogWarning` | 콘솔 로깅 (개발 필수, 빌드에선 일부 stripped) | `#Unity전용` `#필수` |

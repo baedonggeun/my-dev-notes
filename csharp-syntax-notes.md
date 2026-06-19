@@ -1,9 +1,10 @@
 # C# 문법 / 키워드 노트
 
+> 상위 노트: [[README]]
 > 다루는 축: C# 언어 자체의 키워드 / 연산자 / 문법. 빠른 회상용 cheatsheet
-> 다루지 않는 축: 디자인 패턴(→ [[design-pattern-notes]]), Unity API(→ [[unity-feature-notes]]), 단편 트릭(→ [[game-misc-notes]])
+> 다루지 않는 축: 디자인 패턴(→ design-pattern-notes), Unity API(→ unity-feature-notes), 단편 트릭(→ game-misc-notes)
 > 적용 범위: C# 전 버전 (사용 시점 C# 버전을 항목에 명시)
-> 관련 노트: [[design-pattern-notes]] 항목 19 CRTP, [[game-misc-notes]] 항목 12 Array.Empty
+> 관련 노트: design-pattern-notes 항목 19 CRTP, game-misc-notes 항목 12 Array.Empty
 > 등재 기준: **본인이 코드에 한 번이라도 쓴 것**. Microsoft Learn 문서를 옮기는 게 아니라 "내가 실제 사용한 것만" 누적
 > 작성 시작: 2026-05-15
 
@@ -80,7 +81,7 @@
 | 29 | `where T : struct` | 값 타입만 | |
 | 30 | `where T : new()` | 기본 생성자 필요 | `new T()` 가능 |
 | 31 | `where T : Foo` | Foo의 자식만 | |
-| 32 | `where T : Foo<T>` | **CRTP** 자기 참조 | → [[design-pattern-notes]] 항목 19 |
+| 32 | `where T : Foo<T>` | **CRTP** 자기 참조 | → design-pattern-notes 항목 19 |
 | 33 | `where T : unmanaged` | 비관리 타입만 (Span, P/Invoke) | |
 | 34 | `default(T)` | T의 기본값 | `T x = default;` |
 
@@ -122,7 +123,7 @@
 | 56 | `#pragma warning disable` | 특정 경고 억제 | `#pragma warning disable CS0649` |
 | 57 | `[Conditional("X")]` | 심볼 없으면 호출 자체 제거 | `[Conditional("DEBUG")] void Log() {}` |
 | 58 | `[Obsolete]` | 사용 시 경고/에러 | `[Obsolete("Use Foo2 instead")]` |
-| 59 | `[Serializable]` | 직렬화 가능 표시 | → [[unity-feature-notes]] 항목 4 |
+| 59 | `[Serializable]` | 직렬화 가능 표시 | → unity-feature-notes 항목 4 |
 | 60 | `[CallerMemberName]` | 호출자 이름 자동 주입 | `void Log([CallerMemberName] string n="")` |
 
 ## 비동기 / 이터레이터
@@ -159,7 +160,7 @@
 | 70 | `.ToDictionary(k, v)` | 키-값 매핑 + dict 빌드 | `items.ToDictionary(i => i.Id, i => i)` |
 | 71 | `.FirstOrDefault(...)` | 첫 매칭 또는 default | `list.FirstOrDefault(x => x.Id == id)` |
 | 72 | `.Any(...)` / `.All(...)` | 존재 / 모두 검사 | `list.Any(x => x.Done)` |
-| 73 | `Array.Empty<T>()` | GC 회피 빈 배열 | → [[game-misc-notes]] 항목 12 |
+| 73 | `Array.Empty<T>()` | GC 회피 빈 배열 | → game-misc-notes 항목 12 |
 
 
 ---

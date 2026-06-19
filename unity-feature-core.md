@@ -2,7 +2,7 @@
 
 > 상위 노트: [[unity-feature-notes]] (전체 인덱스 디스패처)
 > 다루는 축: 라이프사이클·ScriptableObject·코루틴·SerializeField·DontDestroyOnLoad
-> 다루지 않는 축: [[unity-feature-ui|Unity 기능 — UI 시스템]] / [[unity-feature-misc|Unity 기능 — 오디오·렌더링·에디터·유틸]]
+> 다루지 않는 축: Unity 기능 — UI 시스템 / Unity 기능 — 오디오·렌더링·에디터·유틸
 
 ---
 

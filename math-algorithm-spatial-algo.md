@@ -2,7 +2,7 @@
 
 > 상위 노트: [[math-algorithm-notes]] (전체 인덱스 디스패처)
 > 다루는 축: 공간분할·A*·적분·행렬
-> 다루지 않는 축: [[math-algorithm-interpolation|수학/알고리즘 — 보간·변환·곡선]] / [[math-algorithm-probability|수학/알고리즘 — 확률·통계·집합]]
+> 다루지 않는 축: 수학/알고리즘 — 보간·변환·곡선 / 수학/알고리즘 — 확률·통계·집합
 
 ---
 
@@ -96,7 +96,7 @@ float dist = dir.magnitude;
 
 
 #선형대수 `#O(1)` #결정론 #게임필
-> 관련: [[unity-feature-notes]] 항목 27 Mathf (Vector2/3 API) | 종속성: `#언어독립`
+> 관련: unity-feature-notes 항목 27 Mathf (Vector2/3 API) | 종속성: `#언어독립`
 
 ---
 
@@ -416,7 +416,7 @@ function GetAcceleration(state):
 
 
 #수치해석 #근사 `#O(1)` #결정론
-> 관련: [[game-technique-notes]] 항목 1 비대칭 점프 (Euler 적분의 직접 응용 — g_up/g_down 비대칭 구현) | 종속성: `#언어독립`
+> 관련: game-technique-notes 항목 1 비대칭 점프 (Euler 적분의 직접 응용 — g_up/g_down 비대칭 구현) | 종속성: `#언어독립`
 
 ---
 

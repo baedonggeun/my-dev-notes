@@ -2,7 +2,7 @@
 
 > 상위 노트: [[game-technique-notes]] (전체 인덱스 디스패처)
 > 다루는 축: 조작감·시각 연출·물리 판정·AI 이동 기법
-> 다루지 않는 축: [[game-technique-combat|전투·수치·확률]] / [[game-technique-systems|시스템·아키텍처]]
+> 다루지 않는 축: 전투·수치·확률 / 시스템·아키텍처
 
 ---
 
@@ -92,7 +92,7 @@ if jumpPressed and coyoteTimer > 0:
 
 
 #점프 항목 2D #플랫포머 #게임필 #응답성
-> 관련: [[game-design-notes]] 항목 1 (관용성 디자인 원리), [[math-algorithm-notes]] 항목 17 오일러 적분 (매 프레임 `velocity += accel * dt`로 비대칭 중력을 구현하는 수학 빌딩블록) | 종속성: `#게임엔진일반` (개념 독립, 구현은 물리/시간 시스템 필요)
+> 관련: game-design-notes 항목 1 (관용성 디자인 원리), math-algorithm-notes 항목 17 오일러 적분 (매 프레임 `velocity += accel * dt`로 비대칭 중력을 구현하는 수학 빌딩블록) | 종속성: `#게임엔진일반` (개념 독립, 구현은 물리/시간 시스템 필요)
 
 ## 10. Hold-to-Repeat 버튼 (길게 누르기 반복 입력)
 
@@ -288,7 +288,7 @@ Blend SrcAlpha OneMinusSrcAlpha       // Alpha (표준 투명)
 
 
 #VFX #렌더링 #게임필
-> 관련: [[game-design-notes]] 항목 6 빌보드 기법 (동일 렌더링 범주), [[unity-feature-notes]] 항목 17 Shader Graph (셰이더 구현) | 종속성: `#엔진독립` (개념), 구현은 `#게임엔진일반`
+> 관련: game-design-notes 항목 6 빌보드 기법 (동일 렌더링 범주), unity-feature-notes 항목 17 Shader Graph (셰이더 구현) | 종속성: `#엔진독립` (개념), 구현은 `#게임엔진일반`
 
 ## 20. 레이캐스팅 (Raycasting)
 
@@ -350,7 +350,7 @@ function CanAscend(character):
 
 
 #충돌 #전투 #카메라 항목 3D 항목 2D
-> 관련: [[math-algorithm-notes]] (벡터 내적으로 시야각 판정), [[game-technique-notes]] 항목 11 Parallax Scrolling (2D 배경 깊이감 — 다른 방식의 원근 표현) | 종속성: `#엔진독립` (개념), 구현은 `#게임엔진일반`
+> 관련: math-algorithm-notes (벡터 내적으로 시야각 판정), [[game-technique-notes]] 항목 11 Parallax Scrolling (2D 배경 깊이감 — 다른 방식의 원근 표현) | 종속성: `#엔진독립` (개념), 구현은 `#게임엔진일반`
 
 ## 21. 절차적 애니메이션 + 역운동학 (Procedural Animation + IK)
 
@@ -424,7 +424,7 @@ repeat until converged:
 
 
 #애니메이션 #이동 항목 3D #게임필
-> 관련: [[game-technique-notes]] 항목 20 레이캐스팅 (발 착지점 탐지에 Raycast 활용), [[math-algorithm-notes]] (벡터 연산·Lerp·삼각함수가 기반) | 종속성: `#엔진독립` (FABRIK 개념), 구현은 `#게임엔진일반` (Unity IK Pass 등)
+> 관련: [[game-technique-notes]] 항목 20 레이캐스팅 (발 착지점 탐지에 Raycast 활용), math-algorithm-notes (벡터 연산·Lerp·삼각함수가 기반) | 종속성: `#엔진독립` (FABRIK 개념), 구현은 `#게임엔진일반` (Unity IK Pass 등)
 
 ## 22. 길찾기 알고리즘 (Pathfinding)
 
@@ -543,7 +543,7 @@ unit.velocity = direction * speed
 
 
 #이동 #전략 #액션 #예측가능성
-> 관련: [[game-technique-notes]] 항목 20 레이캐스팅 (장애물 감지에 Raycast 활용 가능), [[math-algorithm-notes]] (우선순위 큐·BFS·그래프 탐색) | 종속성: `#언어독립`
+> 관련: [[game-technique-notes]] 항목 20 레이캐스팅 (장애물 감지에 Raycast 활용 가능), math-algorithm-notes (우선순위 큐·BFS·그래프 탐색) | 종속성: `#언어독립`
 
 ## 23. 픽셀 아트 품질 기법
 
@@ -650,4 +650,4 @@ A B A B A               A B A B B B B B
 
 
 #VFX #애니메이션 #UI #게임필
-> 관련: [[game-technique-notes]] 항목 19 가산·곱하기 블렌딩 (색상 합성 — 렌더링 범주 공통), [[game-design-notes]] (픽셀 아트 스타일 선택의 디자인 의도) | 종속성: `#언어독립` (도구는 Aseprite·Photoshop 등 독립)
+> 관련: [[game-technique-notes]] 항목 19 가산·곱하기 블렌딩 (색상 합성 — 렌더링 범주 공통), game-design-notes (픽셀 아트 스타일 선택의 디자인 의도) | 종속성: `#언어독립` (도구는 Aseprite·Photoshop 등 독립)

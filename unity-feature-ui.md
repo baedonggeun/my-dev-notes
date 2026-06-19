@@ -2,7 +2,7 @@
 
 > 상위 노트: [[unity-feature-notes]] (전체 인덱스 디스패처)
 > 다루는 축: Canvas·Button·LayoutGroup·EventSystem·ScrollRect·TMP
-> 다루지 않는 축: [[unity-feature-core|Unity 기능 — 코어·라이프사이클]] / [[unity-feature-misc|Unity 기능 — 오디오·렌더링·에디터·유틸]]
+> 다루지 않는 축: Unity 기능 — 코어·라이프사이클 / Unity 기능 — 오디오·렌더링·에디터·유틸
 
 ---
 

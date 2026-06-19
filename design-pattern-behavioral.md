@@ -2,7 +2,7 @@
 
 > 상위 노트: [[design-pattern-notes]] (전체 인덱스 디스패처)
 > 다루는 축: GoF 행위 패턴: 객체 간 협력·통신·책임 위임
-> 다루지 않는 축: [[design-pattern-creational-structural|생성·구조 패턴]] / [[design-pattern-architecture|아키텍처 패턴]]
+> 다루지 않는 축: 생성·구조 패턴 / 아키텍처 패턴
 
 ---
 
@@ -345,7 +345,7 @@ class CheckpointSystem
 
 
 #행위
-> 관련: [[design-pattern-notes]] 항목 10 Command (Undo와 조합), [[csharp-syntax-notes]] record (Memento 구현체로 적합) | 종속성: `#OOP` `#언어독립`
+> 관련: [[design-pattern-notes]] 항목 10 Command (Undo와 조합), csharp-syntax-notes record (Memento 구현체로 적합) | 종속성: `#OOP` `#언어독립`
 
 ## 10. Command
 
@@ -594,7 +594,7 @@ async Task<Sprite> LoadAsync(string path) { return await LoadSpriteAsync(path); 
 
 
 #행위
-> 관련: [[design-pattern-notes]] 항목 16 Observer (1:N 이벤트 대안), [[csharp-syntax-notes]] async/await | 종속성: `#OOP` `#FP` `#언어독립`
+> 관련: [[design-pattern-notes]] 항목 16 Observer (1:N 이벤트 대안), csharp-syntax-notes async/await | 종속성: `#OOP` `#FP` `#언어독립`
 
 ## 23. 단일 이벤트 + 추상 Entry 디스패치
 
@@ -652,4 +652,4 @@ OnCombatEvent += entry =>
 
 
 #행동 #이벤트
-> 관련: [[design-pattern-notes]] 항목 16 Observer (기반 이벤트 패턴), [[csharp-syntax-notes]] #패턴매칭 (switch expression) | 종속성: `#OOP` `#언어독립`
+> 관련: [[design-pattern-notes]] 항목 16 Observer (기반 이벤트 패턴), csharp-syntax-notes #패턴매칭 (switch expression) | 종속성: `#OOP` `#언어독립`

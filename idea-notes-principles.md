@@ -2,7 +2,7 @@
 
 > 상위 노트: [[idea-notes]] (전체 인덱스 디스패처)
 > 다루는 축: 소프트웨어 법칙·원칙·TDD
-> 다루지 않는 축: [[idea-notes-architecture|아이디어 — 아키텍처·패턴]] / [[idea-notes-unity-tools|아이디어 — Unity·도구·메타]]
+> 다루지 않는 축: 아이디어 — 아키텍처·패턴 / 아이디어 — Unity·도구·메타
 
 ---
 

@@ -2,7 +2,7 @@
 
 > 상위 노트: [[csharp-syntax-notes]] (전체 인덱스 디스패처)
 > 다루는 축: 컴파일러 지시문/속성·비동기/이터레이터·생성자/파괴자·LINQ/컬렉션
-> 다루지 않는 축: [[csharp-syntax-type-null-pattern|C# 문법 — 타입·null·패턴]] / [[csharp-syntax-generic-expression-type|C# 문법 — 제네릭·표현식·자료형]]
+> 다루지 않는 축: C# 문법 — 타입·null·패턴 / C# 문법 — 제네릭·표현식·자료형
 
 ---
 
@@ -32,7 +32,7 @@
 | 56 | `#pragma warning disable` | 특정 경고 억제 | `#pragma warning disable CS0649` |
 | 57 | `[Conditional("X")]` | 심볼 없으면 호출 자체 제거 | `[Conditional("DEBUG")] void Log() {}` |
 | 58 | `[Obsolete]` | 사용 시 경고/에러 | `[Obsolete("Use Foo2 instead")]` |
-| 59 | `[Serializable]` | 직렬화 가능 표시 | → [[unity-feature-notes]] 항목 4 |
+| 59 | `[Serializable]` | 직렬화 가능 표시 | → unity-feature-notes 항목 4 |
 | 60 | `[CallerMemberName]` | 호출자 이름 자동 주입 | `void Log([CallerMemberName] string n="")` |
 
 ## 비동기 / 이터레이터
@@ -69,7 +69,7 @@
 | 70 | `.ToDictionary(k, v)` | 키-값 매핑 + dict 빌드 | `items.ToDictionary(i => i.Id, i => i)` |
 | 71 | `.FirstOrDefault(...)` | 첫 매칭 또는 default | `list.FirstOrDefault(x => x.Id == id)` |
 | 72 | `.Any(...)` / `.All(...)` | 존재 / 모두 검사 | `list.Any(x => x.Done)` |
-| 73 | `Array.Empty<T>()` | GC 회피 빈 배열 | → [[game-misc-notes]] 항목 12 |
+| 73 | `Array.Empty<T>()` | GC 회피 빈 배열 | → game-misc-notes 항목 12 |
 
 ---
 
@@ -298,7 +298,7 @@ record는 C# 9부터 이미 동일 문법. class/struct로 확장된 것이 C# 1
 - `static` 생성자: 클래스 수준 캐시/테이블 빌드, 1회 초기화 보장
 - Primary constructor: 단순 DI 컨테이너, record-style 불변 데이터 클래스
 
-> **생성자 주입 패턴** — 생성자를 이용해 의존성을 명시적으로 받는 DI 패턴. Unity 제약(MonoBehaviour new() 불가)과 대안 포함 → [[design-pattern-notes]] 항목 20 DI
+> **생성자 주입 패턴** — 생성자를 이용해 의존성을 명시적으로 받는 DI 패턴. Unity 제약(MonoBehaviour new() 불가)과 대안 포함 → design-pattern-notes 항목 20 DI
 
 ---
 

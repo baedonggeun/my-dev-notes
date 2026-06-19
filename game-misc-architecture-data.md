@@ -2,7 +2,7 @@
 
 > 상위 노트: [[game-misc-notes]] (전체 인덱스 디스패처)
 > 다루는 축: 아키텍처 패턴·데이터 관리·성능 최적화
-> 다루지 않는 축: [[game-misc-ui-rendering|게임 잡기술 — UI·렌더링]]
+> 다루지 않는 축: 게임 잡기술 — UI·렌더링
 
 ---
 
@@ -242,13 +242,13 @@ finally
 
 ⚠ **주의점**
 - **EndBatch 빠뜨림** — `BeginBatch`만 호출하고 `EndBatch` 누락 시 이후 단일 변경도 콜백이 영원히 발화 안 됨. `try/finally` 패턴으로 누락 차단
-- **CQS 부분 위반 (의도적)** — `EndBatch`는 상태 변경(batchActive=false) + 이벤트 발화를 동시에 함. "완료 시점에 정확히 1회 통지"라는 원자성이 목적이므로 분리가 의미 없음 ([[software-principle-notes]] 항목 29 CQS 의도된 위반 참조)
+- **CQS 부분 위반 (의도적)** — `EndBatch`는 상태 변경(batchActive=false) + 이벤트 발화를 동시에 함. "완료 시점에 정확히 1회 통지"라는 원자성이 목적이므로 분리가 의미 없음 (software-principle-notes 항목 29 CQS 의도된 위반 참조)
 - **batch 중 예외** — 변경 중 예외가 나면 `batchActive=true` 채로 스택이 풀릴 수 있음. `try/finally` 없으면 Manager가 영구 배치 상태로 고착
 - **재진입 (nested batch)** — `BeginBatch` 내부에서 또 `BeginBatch`가 불리면 두 번째 `EndBatch`가 첫 batch를 닫아버림. 재진입 가능성이 있으면 `int _batchDepth`로 교체: `++_batchDepth`, `--_batchDepth; if (_batchDepth == 0) fire`
 
 
 #트랜잭션 #일관성 #race회피
-> 관련: [[software-principle-notes]] 항목 29 CQS (의도된 위반), [[design-pattern-notes]] Observer (OnChanged 패턴 기반) | 종속성: `#언어독립`
+> 관련: software-principle-notes 항목 29 CQS (의도된 위반), design-pattern-notes Observer (OnChanged 패턴 기반) | 종속성: `#언어독립`
 
 ---
 
@@ -297,7 +297,7 @@ public class RewardPopupController : MonoBehaviour
 
 #UI
 
-> 관련: [[design-pattern-notes]] MVC/MVP (패턴 승격 후보) | 종속성: `#게임엔진일반`
+> 관련: design-pattern-notes MVC/MVP (패턴 승격 후보) | 종속성: `#게임엔진일반`
 
 ---
 
@@ -442,7 +442,7 @@ public static void SetSkip(SkipCategory category, bool value)
 
 #매니저
 
-> 관련: [[unity-feature-notes]] PlayerPrefs | 종속성: `#Unity전용`
+> 관련: unity-feature-notes PlayerPrefs | 종속성: `#Unity전용`
 
 ---
 
@@ -479,4 +479,4 @@ effectiveRts = rts ?? System.Array.Empty<RectTransform>();
 
 
 #성능 #캐시
-> 관련: [[csharp-syntax-notes]] Span/Memory (유사 GC 최적화 계열) | 종속성: `#언어독립`
+> 관련: csharp-syntax-notes Span/Memory (유사 GC 최적화 계열) | 종속성: `#언어독립`

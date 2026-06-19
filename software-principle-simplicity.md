@@ -2,7 +2,7 @@
 
 > 상위 노트: [[software-principle-notes]] (전체 인덱스 디스패처)
 > 다루는 축: YAGNI·KISS·DRY·AHA·보이 스카우트 등
-> 다루지 않는 축: [[software-principle-design|소프트웨어 원칙 — 설계]] / [[software-principle-quality-laws|소프트웨어 원칙 — 코드품질·법칙]]
+> 다루지 않는 축: 소프트웨어 원칙 — 설계 / 소프트웨어 원칙 — 코드품질·법칙
 
 ---
 

@@ -2,7 +2,7 @@
 
 > 상위 노트: [[math-algorithm-notes]] (전체 인덱스 디스패처)
 > 다루는 축: 확률·통계·분포·집합론
-> 다루지 않는 축: [[math-algorithm-interpolation|수학/알고리즘 — 보간·변환·곡선]] / [[math-algorithm-spatial-algo|수학/알고리즘 — 공간·알고리즘]]
+> 다루지 않는 축: 수학/알고리즘 — 보간·변환·곡선 / 수학/알고리즘 — 공간·알고리즘
 
 ---
 
@@ -113,7 +113,7 @@ function SampleAlias(probs, alias):
 
 
 #확률 #가챠 `#O(N)` #확률적
-> 관련: [[game-technique-notes]] 항목 2 가챠 Pity 시스템 (응용), [[math-algorithm-notes]] 항목 6 Pity 누적 시프트 | 종속성: `#언어독립`
+> 관련: game-technique-notes 항목 2 가챠 Pity 시스템 (응용), [[math-algorithm-notes]] 항목 6 Pity 누적 시프트 | 종속성: `#언어독립`
 
 ---
 
@@ -175,7 +175,7 @@ function CalcProbability(base, n, soft, incr, ceiling):
 
 
 #확률 #가챠 `#O(1)` #결정론
-> 관련: [[game-technique-notes]] 항목 2 Pity 등급 시프트 (게임 기법 레벨), [[math-algorithm-notes]] 항목 5 가중 랜덤 | 종속성: `#언어독립`
+> 관련: game-technique-notes 항목 2 Pity 등급 시프트 (게임 기법 레벨), [[math-algorithm-notes]] 항목 5 가중 랜덤 | 종속성: `#언어독립`
 
 ---
 
@@ -223,7 +223,7 @@ function CountUniqueWhere(items[], predicate):
 
 
 #이산 #시너지 `#O(N)` #결정론
-> 관련: [[game-technique-notes]] 항목 4 Unique-ID Synergy Counter | 종속성: `#언어독립`
+> 관련: game-technique-notes 항목 4 Unique-ID Synergy Counter | 종속성: `#언어독립`
 
 
 ---

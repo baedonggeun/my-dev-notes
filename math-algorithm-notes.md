@@ -1,9 +1,10 @@
 # 수학 / 알고리즘 노트
 
+> 상위 노트: [[README]]
 > 다루는 축: 수학 빌딩블록과 알고리즘. 여러 *기법*이 공유하는 한 단계 아래 도구
-> 다루지 않는 축: 빌딩블록의 게임 응용(→ [[game-technique-notes]]), 엔진 API 형태(→ [[unity-feature-notes]])
+> 다루지 않는 축: 빌딩블록의 게임 응용(→ game-technique-notes), 엔진 API 형태(→ unity-feature-notes)
 > 적용 범위: 언어/엔진 완전 독립 — 가장 portable한 노트
-> 관련 노트: [[game-technique-notes]] (수학 응용 기법), [[unity-feature-notes]] 항목 27 (Mathf 빌트인)
+> 관련 노트: game-technique-notes (수학 응용 기법), unity-feature-notes 항목 27 (Mathf 빌트인)
 > 평생 노트 정책: 인덱스 표는 portable, 풀노트는 공식 + 의사코드 + 주의점
 > 승격 임계치: 일반 지식 섹션이 30개 이상 누적 시 카테고리 분리 검토
 > 풀노트 작성 기준: 인덱스 1줄만으로 구현/적용이 불충분한 항목. 자명한 항목만 인덱스로 종료

@@ -2,7 +2,7 @@
 
 > 상위 노트: [[design-pattern-notes]] (전체 인덱스 디스패처)
 > 다루는 축: GoF 생성 패턴(객체 생성) + 구조 패턴(클래스·객체 조합)
-> 다루지 않는 축: [[design-pattern-behavioral|행위 패턴]] / [[design-pattern-architecture|아키텍처 패턴]]
+> 다루지 않는 축: 행위 패턴 / 아키텍처 패턴
 
 ---
 

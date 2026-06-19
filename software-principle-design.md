@@ -2,7 +2,7 @@
 
 > 상위 노트: [[software-principle-notes]] (전체 인덱스 디스패처)
 > 다루는 축: SOLID·GRASP·결합도·응집도
-> 다루지 않는 축: [[software-principle-simplicity|소프트웨어 원칙 — 단순성]] / [[software-principle-quality-laws|소프트웨어 원칙 — 코드품질·법칙]]
+> 다루지 않는 축: 소프트웨어 원칙 — 단순성 / 소프트웨어 원칙 — 코드품질·법칙
 
 ---
 
