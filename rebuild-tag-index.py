@@ -16,10 +16,14 @@ def extract_valid_tags(text):
     return [t for t in (bt + bare) if VALID_TAG.match(t)]
 
 ENTRY_NOTES = {
-    "design-pattern-notes": "디자인 패턴",
+    "design-pattern-behavioral": "디자인 패턴 (행위)",
+    "design-pattern-creational-structural": "디자인 패턴 (생성·구조)",
+    "design-pattern-architecture": "디자인 패턴 (아키텍처)",
     "software-principle-notes": "소프트웨어 원칙",
     "math-algorithm-notes": "수학/알고리즘",
-    "game-technique-notes": "게임 기법",
+    "game-technique-mechanics": "게임 기법 (게임필·시각)",
+    "game-technique-combat": "게임 기법 (전투·수치)",
+    "game-technique-systems": "게임 기법 (시스템·아키텍처)",
     "game-design-notes": "게임 디자인",
     "game-misc-notes": "게임 잡기술",
     "unity-feature-notes": "Unity 기능",
