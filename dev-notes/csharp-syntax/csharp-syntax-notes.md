@@ -1,6 +1,6 @@
 # C# 문법 / 키워드 노트
 
-> 상위 노트: [[README]]
+> 상위 노트: [[Dev Notes README]]
 > 다루는 축: C# 언어 자체의 키워드 / 연산자 / 문법. 빠른 회상용 cheatsheet
 > 다루지 않는 축: 디자인 패턴(→ design-pattern-notes), Unity API(→ unity-feature-notes), 단편 트릭(→ game-misc-notes)
 > 적용 범위: C# 전 버전 (사용 시점 C# 버전을 항목에 명시)

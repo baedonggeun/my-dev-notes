@@ -1,6 +1,6 @@
 # 게임 기타 노트
 
-> 상위 노트: [[README]]
+> 상위 노트: [[Dev Notes README]]
 > 다루는 축: 단편 트릭/가드/캐시 — 디자인 패턴이라기엔 작고, Unity API라기엔 응용된 구현 단편
 > 다루지 않는 축: 일반화된 패턴(→ design-pattern-notes), 게임 *기능*별 기법(→ game-technique-notes)
 > 적용 범위: 다수 항목이 게임엔진/Unity 종속, 일부 언어 독립

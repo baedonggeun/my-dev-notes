@@ -1,6 +1,6 @@
 # Unity 엔진 기능 노트
 
-> 상위 노트: [[README]]
+> 상위 노트: [[Dev Notes README]]
 > 다루는 축: Unity 빌트인 API / 패키지 / 에디터 기능 카탈로그. "이 기능을 어디서 어떻게 썼더라" reference
 > 다루지 않는 축: Unity 독립적 개념/패턴(→ design-pattern-notes, math-algorithm-notes)
 > 적용 범위: **Unity 전용** — 본 노트는 의도적으로 엔진 종속. 다른 엔진 이주 시 대부분 폐기 대상

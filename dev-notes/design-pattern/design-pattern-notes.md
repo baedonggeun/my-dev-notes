@@ -1,6 +1,6 @@
 # 디자인 패턴 노트
 
-> 상위 노트: [[README]]
+> 상위 노트: [[Dev Notes README]]
 > 다루는 축: 코드 구조 패턴 (GoF + 아키텍처). 재사용 가능한 *관계*의 추상화
 > 다루지 않는 축: 게임 특화 기법(→ game-technique-notes), 단편 트릭(→ game-misc-notes)
 > 적용 범위: 대부분 언어/엔진 독립 (OOP 또는 FP 기반)

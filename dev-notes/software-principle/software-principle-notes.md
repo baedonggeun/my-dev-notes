@@ -1,6 +1,6 @@
 # 소프트웨어 원칙 노트
 
-> 상위 노트: [[README]]
+> 상위 노트: [[Dev Notes README]]
 > 다루는 축: 일반 소프트웨어 개발 원칙·휴리스틱·해석. 코드 *형태*가 아닌 *판단 기준*의 추상화
 > 다루지 않는 축: 구체 패턴 구현(→ design-pattern-notes), 게임 특화 기법(→ game-technique-notes), 단편 트릭(→ game-misc-notes)
 > 적용 범위: 언어/엔진/도메인 완전 독립 — 원칙은 메타 레벨

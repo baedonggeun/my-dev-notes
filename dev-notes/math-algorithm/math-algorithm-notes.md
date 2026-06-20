@@ -1,6 +1,6 @@
 # 수학 / 알고리즘 노트
 
-> 상위 노트: [[README]]
+> 상위 노트: [[Dev Notes README]]
 > 다루는 축: 수학 빌딩블록과 알고리즘. 여러 *기법*이 공유하는 한 단계 아래 도구
 > 다루지 않는 축: 빌딩블록의 게임 응용(→ game-technique-notes), 엔진 API 형태(→ unity-feature-notes)
 > 적용 범위: 언어/엔진 완전 독립 — 가장 portable한 노트
